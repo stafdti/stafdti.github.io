@@ -46,6 +46,7 @@
     loadingBanner: el('loadingBanner'),
     errorBanner: el('errorBanner'),
     appContent: el('appContent'),
+    emptyState: el('emptyState'),
     fileStatus: el('fileStatus'),
     csvFileInput: el('csvFileInput'),
     resetFiltersBtn: el('resetFiltersBtn'),
@@ -69,19 +70,13 @@
 
   function init() {
     bindStaticEvents();
-    fetch('resources/transactions.csv')
-      .then((resp) => {
-        if (!resp.ok) throw new Error('HTTP ' + resp.status);
-        return resp.text();
-      })
-      .then((text) => parseCsvText(text, 'resources/transactions.csv'))
-      .catch((err) => {
-        showError(
-          'Could not automatically load "resources/transactions.csv" (' + err.message +
-          '). This can happen when opening the file directly (file://) instead of via a ' +
-          'local web server. Use the "Load CSV" button above to select the file manually.'
-        );
-      });
+    // Start with an empty app state (no auto-load). User loads a CSV via the
+    // "Load CSV" button in the navbar.
+    refs.loadingBanner.classList.add('d-none');
+    refs.errorBanner.classList.add('d-none');
+    refs.appContent.classList.add('d-none');
+    refs.fileStatus.textContent = 'No data loaded';
+    refs.fileStatus.classList.remove('d-none');
   }
 
   function parseCsvText(text, sourceLabel) {
@@ -196,6 +191,9 @@
       reader.onload = () => {
         refs.errorBanner.classList.add('d-none');
         refs.loadingBanner.classList.remove('d-none');
+        refs.loadingBanner.innerHTML =
+          '<div class="spinner-border spinner-border-sm me-2" role="status"></div>' +
+          'Loading <code>' + escapeHtml(file.name) + '</code> ...';
         parseCsvText(reader.result, file.name);
       };
       reader.readAsText(file);
@@ -275,6 +273,7 @@
     state.realizedPnlMap = null; // invalidate FIFO P&L cache for the new dataset
     refs.loadingBanner.classList.add('d-none');
     refs.errorBanner.classList.add('d-none');
+    if (refs.emptyState) refs.emptyState.classList.add('d-none');
     refs.appContent.classList.remove('d-none');
     populateSelectOptions();
     applyFiltersAndRender();

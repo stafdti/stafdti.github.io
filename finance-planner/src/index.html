@@ -35,11 +35,67 @@
 <div class="container-fluid px-3 px-md-4 py-3">
 
   <!-- Loading / Error banners -->
-  <div id="loadingBanner" class="alert alert-info d-flex align-items-center" role="alert">
+  <div id="loadingBanner" class="alert alert-info d-flex align-items-center d-none" role="alert">
     <div class="spinner-border spinner-border-sm me-2" role="status"></div>
     Loading <code>resources/transactions.csv</code> ...
   </div>
   <div id="errorBanner" class="alert alert-warning d-none" role="alert"></div>
+
+  <!-- Empty state / tutorial (shown until a CSV is loaded) -->
+  <div id="emptyState" class="card shadow-sm mb-4">
+    <div class="card-body p-4">
+      <div class="d-flex align-items-center gap-3 mb-2">
+        <div class="display-6 text-primary"><i class="bi bi-upload"></i></div>
+        <div>
+          <h2 class="h5 mb-1">Load a CSV to get started</h2>
+          <div class="text-muted small">
+            This page starts empty. Your data stays in your browser and is not uploaded anywhere.
+          </div>
+        </div>
+      </div>
+
+      <hr class="my-3">
+
+      <ol class="mb-3">
+        <li class="mb-2">
+          Click <strong>Load CSV</strong> in the top right.
+        </li>
+        <li class="mb-2">
+          Select your exported transactions CSV file.
+        </li>
+        <li class="mb-0">
+          The dashboard will render KPIs, charts, and the transactions table automatically.
+        </li>
+      </ol>
+
+      <div class="alert alert-light border mb-3">
+        <div class="fw-semibold mb-1">Where to get a CSV (example: Trade Republic)</div>
+        <div class="small text-muted">
+          You can use an export from <strong>Trade Republic</strong> (or a similar broker) as long as it contains a header row
+          with the columns listed below.
+        </div>
+        <ul class="small text-muted mb-0 mt-2">
+          <li>Open the Trade Republic app</li>
+          <li>Go to <em>Profile</em> / <em>Settings</em> → <em>Documents</em> (wording may vary by app version)</li>
+          <li>Select your <em>Account statement</em> / <em>Transactions</em> export and download the CSV</li>
+          <li>Then click <strong>Load CSV</strong> here and select the downloaded file</li>
+        </ul>
+        <div class="small text-muted mt-2">
+          Note: menu names can differ slightly depending on your region/app version.
+        </div>
+      </div>
+
+      <div class="alert alert-light border mb-0">
+        <div class="fw-semibold mb-1">CSV requirements</div>
+        <div class="small text-muted">
+          The parser expects a header row with at least a <code>date</code> column.
+          Other supported columns include <code>amount</code>, <code>category</code>, <code>type</code>, <code>asset_class</code>,
+          <code>name</code>, <code>symbol</code>, <code>shares</code>, <code>price</code>, <code>fee</code>, <code>tax</code>,
+          <code>description</code>, <code>counterparty_name</code>, and <code>transaction_id</code>.
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div id="appContent" class="d-none">
 
