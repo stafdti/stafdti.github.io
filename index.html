@@ -3,9 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hello World</title>
+    <title>Dashboard</title>
+    <style>
+        :root {
+            --bg: #1e1e2f;
+            --card-bg: #2a2a40;
+            --card-hover: #34344f;
+            --text: #f0f0f5;
+            --accent: #7a7aff;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            margin: 0 0 8px 0;
+            font-size: 2rem;
+            letter-spacing: 1px;
+        }
+
+        p.subtitle {
+            margin: 0 0 40px 0;
+            color: #a0a0b8;
+            font-size: 0.95rem;
+        }
+
+        .dashboard-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            justify-content: center;
+            max-width: 900px;
+        }
+
+        .widget {
+            width: 128px;
+            height: 128px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: var(--text);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+            transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .widget:hover {
+            background: var(--card-hover);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.5);
+        }
+
+        .widget:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
+        .widget .icon {
+            font-size: 42px;
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+
+        .widget .label {
+            font-size: 0.78rem;
+            text-align: center;
+            padding: 0 6px;
+            color: var(--text);
+            opacity: 0.9;
+        }
+
+        footer {
+            margin-top: 60px;
+            font-size: 0.75rem;
+            color: #6c6c80;
+        }
+    </style>
 </head>
 <body>
-    <h1>Hello World</h1>
+    <h1>Dashboard</h1>
+    <p class="subtitle">Standalone web applications</p>
+
+    <div class="dashboard-grid" id="dashboard">
+        <a class="widget" href="drum-pad-machine/src/index.html" title="Drum Pad Machine">
+            <span class="icon">🥁</span>
+            <span class="label">Drum Pad Machine</span>
+        </a>
+        <a class="widget" href="finance-planner/src/index.html" title="Finance Planner">
+            <span class="icon">💰</span>
+            <span class="label">Finance Planner</span>
+        </a>
+    </div>
+
+    <footer>stafdti.github.io</footer>
+
+    <script>
+        // Simple keyboard accessibility / future extension hook.
+        document.querySelectorAll('.widget').forEach(function (widget) {
+            widget.addEventListener('click', function () {
+                // Placeholder for potential analytics or transition effects.
+                console.log('Opening app:', widget.title);
+            });
+        });
+    </script>
 </body>
 </html>

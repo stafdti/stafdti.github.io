@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finance Planner</title>
+
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<!-- Custom styles -->
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark app-navbar sticky-top">
+  <div class="container-fluid px-3 px-md-4">
+    <span class="navbar-brand fw-semibold">
+      <i class="bi bi-graph-up-arrow me-2"></i>Finance Planner
+    </span>
+    <div class="d-flex align-items-center gap-2 ms-auto">
+      <span id="fileStatus" class="small text-light-emphasis d-none d-md-inline">No data loaded</span>
+      <label class="btn btn-sm btn-outline-light mb-0">
+        <i class="bi bi-upload me-1"></i>Load CSV
+        <input type="file" id="csvFileInput" accept=".csv" hidden>
+      </label>
+      <button id="resetFiltersBtn" class="btn btn-sm btn-outline-warning">
+        <i class="bi bi-arrow-counterclockwise me-1"></i>Reset Filters
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="container-fluid px-3 px-md-4 py-3">
+
+  <!-- Loading / Error banners -->
+  <div id="loadingBanner" class="alert alert-info d-flex align-items-center" role="alert">
+    <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+    Loading <code>resources/transactions.csv</code> ...
+  </div>
+  <div id="errorBanner" class="alert alert-warning d-none" role="alert"></div>
+
+  <div id="appContent" class="d-none">
+
+    <!-- Filters -->
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <div class="row g-2 align-items-end">
+          <div class="col-6 col-md-2">
+            <label class="form-label small mb-1">From</label>
+            <input type="date" id="filterDateFrom" class="form-control form-control-sm">
+          </div>
+          <div class="col-6 col-md-2">
+            <label class="form-label small mb-1">To</label>
+            <input type="date" id="filterDateTo" class="form-control form-control-sm">
+          </div>
+
+          <div class="col-6 col-md-2">
+            <label class="form-label small mb-1">Category</label>
+            <div class="dropdown multi-select-dropdown">
+              <button type="button" id="filterCategoryBtn" class="btn btn-sm btn-outline-secondary dropdown-toggle w-100 text-truncate text-start"
+                      data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                All categories
+              </button>
+              <div class="dropdown-menu multi-select-menu p-2" id="filterCategoryMenu" aria-labelledby="filterCategoryBtn">
+                <div class="d-flex justify-content-between mb-2 px-1">
+                  <a href="#" class="small ms-select-all">Select all</a>
+                  <a href="#" class="small ms-select-none">Clear</a>
+                </div>
+                <div class="ms-options"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-6 col-md-2">
+            <label class="form-label small mb-1">Type</label>
+            <div class="dropdown multi-select-dropdown">
+              <button type="button" id="filterTypeBtn" class="btn btn-sm btn-outline-secondary dropdown-toggle w-100 text-truncate text-start"
+                      data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                All types
+              </button>
+              <div class="dropdown-menu multi-select-menu p-2" id="filterTypeMenu" aria-labelledby="filterTypeBtn">
+                <div class="d-flex justify-content-between mb-2 px-1">
+                  <a href="#" class="small ms-select-all">Select all</a>
+                  <a href="#" class="small ms-select-none">Clear</a>
+                </div>
+                <div class="ms-options"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-6 col-md-2">
+            <label class="form-label small mb-1">Asset Class</label>
+            <div class="dropdown multi-select-dropdown">
+              <button type="button" id="filterAssetClassBtn" class="btn btn-sm btn-outline-secondary dropdown-toggle w-100 text-truncate text-start"
+                      data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                All asset classes
+              </button>
+              <div class="dropdown-menu multi-select-menu p-2" id="filterAssetClassMenu" aria-labelledby="filterAssetClassBtn">
+                <div class="d-flex justify-content-between mb-2 px-1">
+                  <a href="#" class="small ms-select-all">Select all</a>
+                  <a href="#" class="small ms-select-none">Clear</a>
+                </div>
+                <div class="ms-options"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-6 col-md-2">
+            <label class="form-label small mb-1">Search</label>
+            <input type="text" id="filterSearch" class="form-control form-control-sm" placeholder="name, symbol, description...">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPI cards -->
+    <div class="row g-3 mb-3" id="kpiRow">
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="card kpi-card shadow-sm h-100">
+          <div class="card-body">
+            <div class="kpi-label">Total Inflow</div>
+            <div class="kpi-value text-success" id="kpiInflow">€0</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="card kpi-card shadow-sm h-100">
+          <div class="card-body">
+            <div class="kpi-label">Total Outflow</div>
+            <div class="kpi-value text-danger" id="kpiOutflow">€0</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="card kpi-card shadow-sm h-100">
+          <div class="card-body">
+            <div class="kpi-label">Net Cash Flow</div>
+            <div class="kpi-value" id="kpiNet">€0</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="card kpi-card shadow-sm h-100">
+          <div class="card-body">
+            <div class="kpi-label">Realized Gain / Loss</div>
+            <div class="kpi-value" id="kpiRealizedPnl">€0</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="card kpi-card shadow-sm h-100">
+          <div class="card-body">
+            <div class="kpi-label">Fees</div>
+            <div class="kpi-value text-danger" id="kpiFees">€0</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="card kpi-card shadow-sm h-100">
+          <div class="card-body">
+            <div class="kpi-label">Tax</div>
+            <div class="kpi-value text-danger" id="kpiTax">€0</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="card kpi-card shadow-sm h-100">
+          <div class="card-body">
+            <div class="kpi-label">Dividends</div>
+            <div class="kpi-value text-success" id="kpiDividends">€0</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="card kpi-card shadow-sm h-100">
+          <div class="card-body">
+            <div class="kpi-label">Interest</div>
+            <div class="kpi-value text-success" id="kpiInterest">€0</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="card kpi-card shadow-sm h-100">
+          <div class="card-body">
+            <div class="kpi-label">Transactions</div>
+            <div class="kpi-value" id="kpiCount">0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts row 1 -->
+    <div class="row g-3 mb-3">
+      <div class="col-md-6 col-lg-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-header">Cash Flow by Category</div>
+          <div class="card-body chart-wrap">
+            <canvas id="chartCategory"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span>Investments by Asset Class</span>
+          </div>
+          <div class="card-body chart-wrap">
+            <canvas id="chartAssetClass"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-12 col-lg-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-header">Top Instruments by Invested Amount</div>
+          <div class="card-body chart-wrap">
+            <canvas id="chartTopInstruments"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts row 2 -->
+    <div class="row g-3 mb-3">
+      <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+          <div class="card-header">Monthly Cash Flow (In / Out)</div>
+          <div class="card-body chart-wrap">
+            <canvas id="chartMonthlyFlow"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+          <div class="card-header">Cumulative Cash Balance</div>
+          <div class="card-body chart-wrap">
+            <canvas id="chartCumulative"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts row 3 -->
+    <div class="row g-3 mb-3">
+      <div class="col-lg-12">
+        <div class="card shadow-sm h-100">
+          <div class="card-header">Top Spending Merchants (Card Transactions)</div>
+          <div class="card-body chart-wrap chart-wrap-wide">
+            <canvas id="chartMerchants"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transactions table -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span>Transactions <span class="text-muted small" id="tableCountLabel"></span></span>
+        <div class="btn-group btn-group-sm" role="group">
+          <button class="btn btn-outline-secondary" data-sort="date">Sort by Date</button>
+          <button class="btn btn-outline-secondary" data-sort="amount">Sort by Amount</button>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0 align-middle" id="txTable">
+          <thead class="table-light">
+            <tr>
+              <th>Date</th>
+              <th>Category</th>
+              <th>Type</th>
+              <th>Asset Class</th>
+              <th>Name / Symbol</th>
+              <th class="text-end">Shares</th>
+              <th class="text-end">Price</th>
+              <th class="text-end">Amount</th>
+              <th class="text-end">P&L</th>
+              <th class="text-end">Fee</th>
+              <th class="text-end">Tax</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody id="txTableBody"></tbody>
+        </table>
+      </div>
+      <div class="card-footer d-flex justify-content-between align-items-center">
+        <div class="small text-muted" id="paginationLabel"></div>
+        <nav>
+          <ul class="pagination pagination-sm mb-0" id="paginationControls"></ul>
+        </nav>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- PapaParse (CSV parsing) -->
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<!-- Bootstrap JS bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- App logic -->
+<script src="js/app.js"></script>
+</body>
+</html>
