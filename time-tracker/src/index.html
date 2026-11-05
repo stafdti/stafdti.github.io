@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Time Tracker</title>
+
+  <!-- Bootstrap 5 (CDN) -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="container-fluid py-3 py-md-4 app-container">
+
+    <!-- Header -->
+    <header class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+      <div>
+        <h1 class="h3 mb-0">⏱️ Time Tracker</h1>
+        <div class="text-muted small">All data stays in your browser (localStorage)</div>
+      </div>
+      <div class="d-flex gap-2">
+        <button id="themeToggleBtn" type="button" class="btn btn-outline-secondary btn-sm" title="Toggle dark/light mode" aria-label="Toggle dark/light mode">
+          <span id="themeToggleIcon">🌙</span>
+        </button>
+        <button id="helpBtn" type="button" class="btn btn-outline-secondary btn-sm">
+          Help
+        </button>
+        <button id="exportBtn" type="button" class="btn btn-outline-secondary btn-sm">
+          Export data
+        </button>
+        <button id="importBtn" type="button" class="btn btn-outline-secondary btn-sm">
+          Import data
+        </button>
+        <input id="importFileInput" type="file" accept="application/json" class="d-none" />
+      </div>
+    </header>
+
+    <!-- Alerts -->
+    <div id="alertContainer"></div>
+
+    <!-- Topic management -->
+    <section class="card shadow-sm mb-4">
+      <div class="card-body">
+        <h2 class="h6 mb-3">Topics</h2>
+        <form id="addTopicForm" class="row g-2 align-items-center mb-3">
+          <div class="col-auto flex-grow-1" style="max-width: 320px;">
+            <input
+              id="newTopicInput"
+              type="text"
+              class="form-control form-control-sm"
+              placeholder="New topic name…"
+              maxlength="60"
+              autocomplete="off"
+            />
+          </div>
+          <div class="col-auto">
+            <button type="submit" class="btn btn-primary btn-sm">Add topic</button>
+          </div>
+        </form>
+
+        <div id="topicGrid" class="topic-grid"></div>
+        <div id="emptyTopicsHint" class="text-muted small d-none">
+          No topics yet — add your first topic above, then click it to start tracking time.
+        </div>
+      </div>
+    </section>
+
+    <!-- Weekly chart -->
+    <section class="card shadow-sm mb-4">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h2 class="h6 mb-0">This Week (Mon–Fri)</h2>
+          <div class="d-flex align-items-center gap-2">
+            <div id="weekRangeLabel" class="text-muted small"></div>
+            <div class="btn-group btn-group-sm" role="group" aria-label="Week navigation">
+              <button id="weekPrevBtn" type="button" class="btn btn-outline-secondary" title="Previous week" aria-label="Previous week">
+                &laquo;
+              </button>
+              <button id="weekTodayBtn" type="button" class="btn btn-outline-secondary" title="Jump to current week">
+                Today
+              </button>
+              <button id="weekNextBtn" type="button" class="btn btn-outline-secondary" title="Next week" aria-label="Next week">
+                &raquo;
+              </button>
+            </div>
+          </div>
+        </div>
+        <div id="weekChart" class="week-chart"></div>
+        <div id="weekLegend" class="week-legend mt-3"></div>
+
+        <hr class="my-4" />
+
+        <h2 class="h6 mb-3">Time by Topic</h2>
+        <div class="table-responsive">
+          <table id="weekTable" class="table table-sm table-bordered align-middle mb-0 week-table">
+            <thead>
+              <tr id="weekTableHeadRow"></tr>
+            </thead>
+            <tbody id="weekTableBody"></tbody>
+            <tfoot>
+              <tr id="weekTableFootRow"></tr>
+            </tfoot>
+          </table>
+        </div>
+        <div id="weekTableEmptyHint" class="text-muted small d-none">
+          No topics yet — add a topic below to see your weekly totals here.
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Help modal -->
+  <div class="modal fade" id="helpModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered help-modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">How Time Tracker works</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <ol class="mb-3">
+            <li class="mb-2">
+              <strong>Add topics.</strong> Type a free-text name (e.g. "Email", "Deep Work") in the
+              field below the chart and click <em>Add topic</em>. Topics appear as boxes, sorted
+              alphabetically.
+            </li>
+            <li class="mb-2">
+              <strong>Start tracking.</strong> Click a topic box to start its stopwatch. The box
+              turns green with a pulsing dot and shows a live elapsed timer.
+            </li>
+            <li class="mb-2">
+              <strong>Switch topics.</strong> Click a different topic box to automatically stop the
+              current one and start the new one — no separate "stop" step needed.
+            </li>
+            <li class="mb-2">
+              <strong>Stop tracking.</strong> Click the currently running topic again to stop it
+              without starting anything new.
+            </li>
+            <li class="mb-2">
+              <strong>Delete a topic.</strong> Hover a box and click the "×" in the corner. Already
+              tracked time for that topic is kept in the history and chart.
+            </li>
+            <li class="mb-2">
+              <strong>Weekly chart.</strong> The stacked bar chart at the top shows the current
+              Monday–Friday week, with one colored segment per topic per day. A striped segment
+              marks the time that's still running.
+            </li>
+            <li class="mb-2">
+              <strong>Export / Import.</strong> Use <em>Export data</em> to download all topics and
+              tracked time as a JSON file, and <em>Import data</em> to restore it later (or on another
+              device/browser) — importing replaces all current data after confirmation.
+            </li>
+            <li class="mb-2">
+              <strong>Dark / light mode.</strong> Use the moon/sun button to switch themes. Your
+              preference is remembered for next time.
+            </li>
+          </ol>
+          <p class="text-muted small mb-0">
+            Everything is stored only in this browser's local storage — there is no server or
+            account involved.
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Got it</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import confirmation modal -->
+  <div class="modal fade" id="importConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Replace all data?</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Importing will <strong>overwrite</strong> all current topics and tracked time entries
+          with the contents of the selected file. This cannot be undone. Continue?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" id="confirmImportBtn" class="btn btn-danger">Replace data</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS bundle (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
