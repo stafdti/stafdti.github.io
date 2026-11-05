@@ -153,3 +153,20 @@ or served via any static file server, e.g.:
 # from the time-tracker/src directory
 python -m http.server 8080
 # then open http://localhost:8080
+```
+
+## Installing as a local app (PWA)
+
+Time Tracker is also an installable **Progressive Web App (PWA)**:
+
+- `manifest.webmanifest` declares the app name, icons, and `display: "standalone"` so it opens in its own window without browser chrome.
+- `sw.js` is a service worker that caches the app shell (HTML/CSS/JS/icons) so the app keeps working offline and loads instantly on repeat visits.
+- `index.html` links the manifest and registers the service worker on load.
+
+**Note:** Service workers (and therefore the "Install app" prompt) require the page to be served over `http://`/`https://` — they do **not** work when the page is opened directly as a `file://` URL. Serve the app via a local static server (see above) or any static web host, then:
+
+- **Chrome / Edge (desktop):** click the install icon in the address bar, or open the browser menu → *Install Time Tracker…*.
+- **Android (Chrome):** browser menu → *Add to Home screen* / *Install app*.
+- **iOS (Safari):** tap the Share icon → *Add to Home Screen*.
+
+Once installed, the app launches like a native app (its own window/icon) and continues to use `localStorage` on that device — data is not synced between installs/devices, so use **Export data** / **Import data** to move data around.

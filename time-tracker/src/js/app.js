@@ -808,5 +808,17 @@
     }
   }
 
+  function registerServiceWorker() {
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("sw.js").catch(function () {
+          // Silently ignore registration failures (e.g. running from file://,
+          // where service workers are not supported).
+        });
+      });
+    }
+  }
+
   document.addEventListener("DOMContentLoaded", init);
+  registerServiceWorker();
 })();
