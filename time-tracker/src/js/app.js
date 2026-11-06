@@ -11,6 +11,7 @@
     entries: "timeTracker.entries",
     active: "timeTracker.active",
     theme: "timeTracker.theme",
+    chartView: "timeTracker.chartView",
   };
 
   const EXPORT_VERSION = 1;
@@ -53,8 +54,11 @@
     helpBtn: document.getElementById("helpBtn"),
     themeToggleBtn: document.getElementById("themeToggleBtn"),
     themeToggleIcon: document.getElementById("themeToggleIcon"),
+    weekDailyViewBtn: document.getElementById("weekDailyViewBtn"),
+    weekTimelineViewBtn: document.getElementById("weekTimelineViewBtn"),
   };
 
+  let chartView = "daily";
   let importConfirmModal = null;
   let helpModal = null;
   let pendingImportPayload = null;
@@ -203,6 +207,13 @@
     }
     if (!Array.isArray(topics)) topics = [];
     if (!Array.isArray(entries)) entries = [];
+
+    try {
+      const storedChartView = localStorage.getItem(STORAGE_KEYS.chartView);
+      chartView = storedChartView === "timeline" ? "timeline" : "daily";
+    } catch (e) {
+      chartView = "daily";
+    }
   }
 
   function saveTopics() {
@@ -451,6 +462,21 @@
     return result;
   }
 
+  function setChartView(view) {
+    chartView = view === "timeline" ? "timeline" : "daily";
+    try {
+      localStorage.setItem(STORAGE_KEYS.chartView, chartView);
+    } catch (e) {
+      // ignore storage errors
+    }
+
+    el.weekDailyViewBtn.classList.toggle("active", chartView === "daily");
+    el.weekTimelineViewBtn.classList.toggle("active", chartView === "timeline");
+    el.weekDailyViewBtn.setAttribute("aria-pressed", chartView === "daily" ? "true" : "false");
+    el.weekTimelineViewBtn.setAttribute("aria-pressed", chartView === "timeline" ? "true" : "false");
+    renderWeekChart();
+  }
+
   function render() {
     renderTopicGrid();
     renderWeekChart();
@@ -577,6 +603,14 @@
   }
 
   function renderWeekChart() {
+    if (chartView === "timeline") {
+      renderWeekTimeline();
+      return;
+    }
+    renderWeekDailyChart();
+  }
+
+  function renderWeekDailyChart() {
     const weekDays = getCurrentWeekMonFri();
     const sortedTopics = getSortedTopics();
     const sortedTopicIds = sortedTopics.map(function (t) { return t.id; });
@@ -650,6 +684,123 @@
       el.weekChart.appendChild(col);
     });
 
+    renderWeekLegend(sortedTopics, sortedTopicIds);
+  }
+
+  function getTimelineTopicMinutes(startMs, endMs, topicIds) {
+    const totals = {};
+
+    function addOverlap(topicId, entryStartMs, entryEndMs) {
+      const overlapStart = Math.max(startMs, entryStartMs);
+      const overlapEnd = Math.min(endMs, entryEndMs);
+      if (overlapEnd > overlapStart) {
+        totals[topicId] = (totals[topicId] || 0) + (overlapEnd - overlapStart) / 60000;
+      }
+    }
+
+    entries.forEach(function (entry) {
+      const entryStartMs = new Date(entry.startIso).getTime();
+      const entryEndMs = new Date(entry.endIso).getTime();
+      if (!Number.isFinite(entryStartMs) || !Number.isFinite(entryEndMs)) return;
+      addOverlap(entry.topicId, entryStartMs, entryEndMs);
+    });
+
+    if (active) {
+      const activeStartMs = new Date(active.startIso).getTime();
+      if (Number.isFinite(activeStartMs)) {
+        addOverlap(active.topicId, activeStartMs, Date.now());
+      }
+    }
+
+    return topicIds.reduce(function (result, topicId) {
+      result[topicId] = totals[topicId] || 0;
+      return result;
+    }, {});
+  }
+
+  function renderWeekTimeline() {
+    const weekDays = getCurrentWeekMonFri();
+    const sortedTopics = getSortedTopics();
+    const firstLabel = formatShortDate(weekDays[0]);
+    const lastLabel = formatShortDate(weekDays[weekDays.length - 1]);
+    el.weekRangeLabel.textContent = firstLabel + " \u2013 " + lastLabel;
+    const sortedTopicIds = sortedTopics.map(function (t) { return t.id; });
+
+    el.weekChart.innerHTML = "";
+
+    if (sortedTopics.length === 0) {
+      const hint = document.createElement("div");
+      hint.className = "week-empty-hint";
+      hint.textContent = "Add topics below to start tracking — your weekly chart will appear here.";
+      el.weekChart.appendChild(hint);
+      el.weekLegend.innerHTML = "";
+      return;
+    }
+
+    const chart = document.createElement("div");
+    chart.className = "week-timeline";
+
+    const axis = document.createElement("div");
+    axis.className = "week-timeline-axis";
+    axis.innerHTML = '<span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span>';
+    chart.appendChild(axis);
+
+    weekDays.forEach(function (day, dayIndex) {
+      const row = document.createElement("div");
+      row.className = "week-timeline-row";
+
+      const label = document.createElement("div");
+      label.className = "week-timeline-label";
+      label.textContent = DAY_LABELS[dayIndex];
+      label.title = formatShortDate(day);
+
+      const track = document.createElement("div");
+      track.className = "week-timeline-track";
+
+      for (let intervalIndex = 0; intervalIndex < 96; intervalIndex++) {
+        // Build each slot in local wall-clock time. Adding milliseconds to a
+        // UTC timestamp can shift the displayed slot around timezone/DST
+        // boundaries; setHours keeps each slot aligned to local time.
+        const intervalStartDate = new Date(day);
+        intervalStartDate.setHours(0, intervalIndex * 15, 0, 0);
+        const intervalEndDate = new Date(intervalStartDate);
+        intervalEndDate.setMinutes(intervalEndDate.getMinutes() + 15);
+
+        const intervalStart = intervalStartDate.getTime();
+        const intervalEnd = intervalEndDate.getTime();
+        const intervalMinutes = getTimelineTopicMinutes(intervalStart, intervalEnd, sortedTopicIds);
+        const topicId = sortedTopicIds.reduce(function (bestId, candidateId) {
+          return intervalMinutes[candidateId] > (bestId ? intervalMinutes[bestId] : 0) ? candidateId : bestId;
+        }, null);
+
+        const cell = document.createElement("div");
+        cell.className = "week-timeline-cell";
+        if (topicId && intervalMinutes[topicId] > 0) {
+          const isPartial = !!active && active.topicId === topicId &&
+            intervalStart < Date.now() &&
+            new Date(active.startIso).getTime() < intervalEnd;
+          cell.className += " has-time" + (isPartial ? " partial" : "");
+          cell.style.backgroundColor = colorForTopicId(topicId, sortedTopicIds);
+          const topic = topics.find(function (t) { return t.id === topicId; });
+          const intervalDate = new Date(intervalStart);
+          const timeLabel = intervalDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+          cell.title = DAY_LABELS[dayIndex] + " " + timeLabel + "–" +
+            new Date(intervalEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) +
+            ": " + (topic ? topic.name : "Unknown");
+        } else {
+          cell.title = DAY_LABELS[dayIndex] + " " +
+            new Date(intervalStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) +
+            ": No tracked time";
+        }
+        track.appendChild(cell);
+      }
+
+      row.appendChild(label);
+      row.appendChild(track);
+      chart.appendChild(row);
+    });
+
+    el.weekChart.appendChild(chart);
     renderWeekLegend(sortedTopics, sortedTopicIds);
   }
 
@@ -880,6 +1031,14 @@
 
     el.themeToggleBtn.addEventListener("click", toggleTheme);
 
+    el.weekDailyViewBtn.addEventListener("click", function () {
+      setChartView("daily");
+    });
+
+    el.weekTimelineViewBtn.addEventListener("click", function () {
+      setChartView("timeline");
+    });
+
     el.weekPrevBtn.addEventListener("click", goToPreviousWeek);
     el.weekNextBtn.addEventListener("click", goToNextWeek);
     el.weekTodayBtn.addEventListener("click", goToCurrentWeek);
@@ -900,6 +1059,7 @@
     }
 
     bindEvents();
+    setChartView(chartView);
     render();
     updateWeekNavButtons();
 

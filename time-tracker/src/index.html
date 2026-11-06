@@ -82,8 +82,16 @@
     <!-- Weekly chart -->
     <section class="card shadow-sm mb-4">
       <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="week-chart-header d-flex justify-content-between align-items-center mb-2">
           <h2 class="h6 mb-0">This Week (Mon–Fri)</h2>
+          <div class="week-chart-view-toggle btn-group btn-group-sm" role="group" aria-label="Chart view">
+            <button id="weekDailyViewBtn" type="button" class="btn btn-outline-secondary active" aria-pressed="true">
+              Daily
+            </button>
+            <button id="weekTimelineViewBtn" type="button" class="btn btn-outline-secondary" aria-pressed="false">
+              Timeline
+            </button>
+          </div>
           <div class="d-flex align-items-center gap-2">
             <div id="weekRangeLabel" class="text-muted small"></div>
             <div class="btn-group btn-group-sm" role="group" aria-label="Week navigation">
