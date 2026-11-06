@@ -55,9 +55,9 @@ body {
 }
 
 .topic-box {
-  width: 128px;
-  height: 128px;
-  flex: 0 0 128px;
+  width: 96px;
+  height: 96px;
+  flex: 0 0 96px;
   border-radius: 10px;
   border: 2px solid var(--tt-box-border);
   background-color: var(--tt-box-bg);
@@ -418,6 +418,12 @@ body {
 
 .week-timeline-row:last-child {
   margin-bottom: 0;
+}
+
+/* ---------- Time table ---------- */
+
+.week-table {
+  font-size: 0.8rem;
 }
 
 /* ---------- Theme toggle button ---------- */
