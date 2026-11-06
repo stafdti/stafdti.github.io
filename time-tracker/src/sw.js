@@ -3,7 +3,7 @@
  * No backend, no external data caching needed - everything the app needs is static.
  */
 
-const CACHE_NAME = "time-tracker-cache-v1";
+const CACHE_NAME = "time-tracker-cache-v4";
 const APP_SHELL = [
   "./index.html",
   "./css/style.css",

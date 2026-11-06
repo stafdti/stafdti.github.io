@@ -93,6 +93,18 @@ body {
   color: var(--tt-box-name-color);
 }
 
+.topic-box .topic-name-input {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  width: 100%;
+  max-width: 108px;
+  padding: 1px 4px;
+  height: auto;
+  color: var(--tt-box-name-color);
+  background-color: var(--tt-box-bg);
+}
+
 .topic-box .topic-timer {
   margin-top: 6px;
   font-size: 0.8rem;
@@ -146,8 +158,11 @@ body {
   border: none;
   background: rgba(127, 127, 127, 0.18);
   color: var(--tt-box-name-color);
-  font-size: 0.75rem;
-  line-height: 20px;
+  font-size: 0.7rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   padding: 0;
   opacity: 0;
@@ -160,6 +175,36 @@ body {
 
 .topic-box .topic-delete:hover {
   background: #dc3545;
+  color: #fff;
+}
+
+.topic-box .topic-rename {
+  position: absolute;
+  top: 4px;
+  left: 28px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(127, 127, 127, 0.18);
+  color: var(--tt-box-name-color);
+  font-size: 0.7rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0;
+  opacity: 0;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+
+.topic-box:hover .topic-rename {
+  opacity: 1;
+}
+
+.topic-box .topic-rename:hover {
+  background: var(--tt-running-color, #4C6EF5);
   color: #fff;
 }
 

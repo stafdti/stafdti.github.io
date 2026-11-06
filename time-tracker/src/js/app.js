@@ -263,6 +263,48 @@
     render();
   }
 
+  function renameTopic(topicId, newName) {
+    const topic = topics.find((t) => t.id === topicId);
+    if (!topic) {
+      render();
+      return;
+    }
+    const trimmed = (newName || "").trim();
+    if (!trimmed || trimmed === topic.name) {
+      render();
+      return;
+    }
+    const exists = topics.some(
+      (t) => t.id !== topicId && t.name.toLowerCase() === trimmed.toLowerCase()
+    );
+    if (exists) {
+      showAlert('A topic named "' + trimmed + '" already exists.', "warning");
+      render();
+      return;
+    }
+
+    topic.name = trimmed;
+    saveTopics();
+
+    let entriesChanged = false;
+    entries.forEach(function (entry) {
+      if (entry.topicId === topicId) {
+        entry.topicName = trimmed;
+        entriesChanged = true;
+      }
+    });
+    if (entriesChanged) {
+      saveEntries();
+    }
+
+    if (active && active.topicId === topicId) {
+      active.topicName = trimmed;
+      saveActive();
+    }
+
+    render();
+  }
+
   function startTracking(topic) {
     active = {
       topicId: topic.id,
@@ -450,7 +492,7 @@
       deleteBtn.type = "button";
       deleteBtn.className = "topic-delete";
       deleteBtn.title = "Delete topic";
-      deleteBtn.textContent = "\u00D7";
+      deleteBtn.textContent = "\uD83D\uDDD9";
       deleteBtn.addEventListener("click", function (ev) {
         ev.stopPropagation();
         if (window.confirm('Delete topic "' + topic.name + '"? Historical tracked time is kept.')) {
@@ -458,7 +500,18 @@
         }
       });
 
+      const renameBtn = document.createElement("button");
+      renameBtn.type = "button";
+      renameBtn.className = "topic-rename";
+      renameBtn.title = "Rename topic";
+      renameBtn.textContent = "\u270E";
+      renameBtn.addEventListener("click", function (ev) {
+        ev.stopPropagation();
+        startTopicRename(box, nameEl, topic);
+      });
+
       box.appendChild(deleteBtn);
+      box.appendChild(renameBtn);
       box.appendChild(nameEl);
       box.appendChild(timerEl);
 
@@ -474,6 +527,53 @@
 
       el.topicGrid.appendChild(box);
     });
+  }
+
+  function startTopicRename(box, nameEl, topic) {
+    // Avoid creating multiple inputs if already editing.
+    if (box.querySelector(".topic-name-input")) return;
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "topic-name-input form-control form-control-sm";
+    input.value = topic.name;
+    input.maxLength = 60;
+
+    // Prevent clicks/keydowns on the input from toggling tracking or
+    // bubbling up to the box's click handler.
+    input.addEventListener("click", function (ev) {
+      ev.stopPropagation();
+    });
+
+    let finished = false;
+    function finishEdit(commit) {
+      if (finished) return;
+      finished = true;
+      if (commit) {
+        renameTopic(topic.id, input.value);
+      } else {
+        render();
+      }
+    }
+
+    input.addEventListener("keydown", function (ev) {
+      ev.stopPropagation();
+      if (ev.key === "Enter") {
+        ev.preventDefault();
+        input.blur();
+      } else if (ev.key === "Escape") {
+        ev.preventDefault();
+        finishEdit(false);
+      }
+    });
+
+    input.addEventListener("blur", function () {
+      finishEdit(true);
+    });
+
+    nameEl.replaceWith(input);
+    input.focus();
+    input.select();
   }
 
   function renderWeekChart() {
