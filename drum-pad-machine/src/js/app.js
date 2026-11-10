@@ -114,7 +114,7 @@
 
       const key = document.createElement('div');
       key.className = 'pad-key';
-      key.textContent = PAD_KEYS[i];
+      key.textContent = i === 12 ? 'Y / Z' : PAD_KEYS[i];
 
       pad.appendChild(label);
       pad.appendChild(key);
@@ -355,7 +355,14 @@
       }
 
       const key = event.key.toUpperCase();
-      const padIndex = PAD_KEYS.indexOf(key);
+      let padIndex = PAD_KEYS.indexOf(key);
+
+      // Pad 13 uses the same physical key as Z on English layouts and Y
+      // on German layouts, where the keyboard positions are swapped.
+      if (padIndex === -1 && (key === 'Y' || key === 'Z')) {
+        padIndex = 12;
+      }
+
       if (padIndex === -1) return;
 
       // Avoid retriggering repeatedly while key is held down.
