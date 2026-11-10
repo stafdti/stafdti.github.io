@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Block Cascade</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Retro Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Press Start 2P', monospace;
+            background-color: #0b0b14;
+            color: #d8d8f0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        
+        .arcade-frame {
+            border: 4px solid #2e2e4a;
+            box-shadow: 0 0 20px rgba(138, 43, 226, 0.2), inset 0 0 12px rgba(0, 0, 0, 0.9);
+        }
+
+        .arcade-panel {
+            background: #131322;
+            border: 2px solid #24243a;
+            box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.05), inset -2px -2px 0 rgba(0, 0, 0, 0.6);
+        }
+
+        .btn-arcade {
+            background: #222238;
+            border: 2px solid #444466;
+            box-shadow: 0 4px 0 #11111c;
+            transition: all 0.05s ease;
+        }
+
+        .btn-arcade:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #11111c;
+        }
+
+        .btn-arcade:hover {
+            background: #2f2f4c;
+            border-color: #a855f7;
+            color: #a855f7;
+        }
+
+        /* Scanline Overlay */
+        .scanlines {
+            position: relative;
+            overflow: hidden;
+        }
+        .scanlines::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%);
+            background-size: 100% 4px;
+            z-index: 20;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        /* CRT Screen Glow */
+        .crt-glow {
+            box-shadow: 0 0 25px rgba(168, 85, 247, 0.15);
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0b0b14; }
+        ::-webkit-scrollbar-thumb { background: #2e2e4a; border-radius: 3px; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-2 sm:p-4 scanlines select-none">
+
+    <div class="max-w-4xl w-full flex flex-col items-center">
+
+        <!-- Main Title Header -->
+        <header class="w-full text-center mb-4">
+            <h1 class="text-2xl sm:text-4xl font-extrabold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)]">
+                BLOCK CASCADE
+            </h1>
+            <p class="text-[9px] sm:text-xs text-purple-300 mt-2 tracking-widest">POLYOMINO GRID PUZZLE</p>
+        </header>
+
+        <!-- Main Arcade Layout Container -->
+        <div class="w-full flex flex-col lg:flex-row gap-4 items-center lg:items-start justify-center">
+
+            <!-- Left Side Panel: Stash / Hold & Score Stats -->
+            <div class="w-full lg:w-48 flex flex-row lg:flex-col gap-3 justify-between">
+                
+                <!-- Hold Stash Box -->
+                <div class="arcade-panel p-3 rounded-lg flex-1 flex flex-col items-center">
+                    <span class="text-[10px] text-purple-400 mb-2 uppercase tracking-wider">STASH [C]</span>
+                    <div class="w-20 h-20 bg-black/70 rounded border border-purple-900/50 flex items-center justify-center">
+                        <canvas id="holdCanvas" width="80" height="80"></canvas>
+                    </div>
+                </div>
+
+                <!-- Game Metrics Dashboard -->
+                <div class="arcade-panel p-3 rounded-lg flex-1 flex flex-col justify-around gap-2 text-[10px]">
+                    <div>
+                        <div class="text-gray-400 text-[8px] uppercase">Score</div>
+                        <div id="scoreDisplay" class="text-amber-400 text-sm sm:text-base mt-1">000000</div>
+                    </div>
+                    <div>
+                        <div class="text-gray-400 text-[8px] uppercase">Best Record</div>
+                        <div id="highScoreDisplay" class="text-pink-400 text-sm sm:text-base mt-1">000000</div>
+                    </div>
+                    <div class="flex justify-between border-t border-purple-900/40 pt-2">
+                        <div>
+                            <div class="text-gray-400 text-[8px] uppercase">Rows</div>
+                            <div id="linesDisplay" class="text-cyan-300 text-xs mt-1">0</div>
+                        </div>
+                        <div>
+                            <div class="text-gray-400 text-[8px] uppercase">Phase</div>
+                            <div id="levelDisplay" class="text-emerald-400 text-xs mt-1">1</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Playing Field Canvas & UI Overlays -->
+            <div class="relative group">
+                <div class="arcade-frame p-2 bg-black rounded-lg crt-glow">
+                    <canvas id="gridCanvas" width="240" height="480" class="block bg-black/95 rounded"></canvas>
+                </div>
+
+                <!-- Dynamic Start / Pause / End Screen Overlay -->
+                <div id="overlay" class="absolute inset-0 bg-black/85 backdrop-blur-sm rounded-lg flex flex-col items-center justify-center p-6 text-center z-30">
+                    <h2 id="overlayTitle" class="text-2xl text-purple-400 mb-4 animate-pulse">READY?</h2>
+                    <p id="overlaySubtitle" class="text-[10px] text-gray-300 mb-6 leading-relaxed">
+                        Press START or Space to Cascade!
+                    </p>
+                    <button id="startBtn" class="btn-arcade text-xs px-6 py-3 rounded text-purple-300 font-bold tracking-wider">
+                        START GAME
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Side Panel: Next Cascade & Settings Controls -->
+            <div class="w-full lg:w-48 flex flex-row lg:flex-col gap-3 justify-between">
+                
+                <!-- Incoming Piece Preview Box -->
+                <div class="arcade-panel p-3 rounded-lg flex-1 flex flex-col items-center">
+                    <span class="text-[10px] text-purple-400 mb-2 uppercase tracking-wider">NEXT</span>
+                    <div class="w-20 h-20 bg-black/70 rounded border border-purple-900/50 flex items-center justify-center">
+                        <canvas id="nextCanvas" width="80" height="80"></canvas>
+                    </div>
+                </div>
+
+                <!-- Action Controls & Settings -->
+                <div class="arcade-panel p-3 rounded-lg flex-1 flex flex-col gap-2 justify-center">
+                    <button id="pauseBtn" class="btn-arcade text-[10px] py-2 px-3 rounded text-gray-200">
+                        PAUSE [P]
+                    </button>
+                    <button id="settingsBtn" class="btn-arcade text-[10px] py-2 px-3 rounded text-gray-200">
+                        SETTINGS
+                    </button>
+                    <button id="resetScoreBtn" class="btn-arcade text-[8px] py-1 px-2 rounded text-rose-400 border-rose-950 mt-2">
+                        CLEAR BEST
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Touch Screen Mobile Controls -->
+        <div class="w-full max-w-md mt-4 grid grid-cols-5 gap-2 lg:hidden">
+            <button id="btnLeft" class="btn-arcade p-3 text-sm font-bold text-center rounded">◄</button>
+            <button id="btnRotate" class="btn-arcade p-3 text-sm font-bold text-center rounded text-amber-400">↻</button>
+            <button id="btnRight" class="btn-arcade p-3 text-sm font-bold text-center rounded">►</button>
+            <button id="btnDown" class="btn-arcade p-3 text-sm font-bold text-center rounded">▼</button>
+            <button id="btnDrop" class="btn-arcade p-3 text-sm font-bold text-center rounded text-cyan-400">⤓</button>
+        </div>
+
+        <div class="w-full max-w-md mt-2 flex justify-between lg:hidden">
+            <button id="btnHold" class="btn-arcade flex-1 py-2 text-[10px] font-bold text-center rounded text-purple-300">STASH PIECE</button>
+        </div>
+
+        <!-- Desktop Keyboard Reference Footer -->
+        <footer class="mt-6 text-[9px] text-gray-500 text-center leading-relaxed hidden sm:block">
+            <p>CONTROLS: ← / → / A / D : Shift &bull; ↑ / W : Spin &bull; ↓ / S : Soft Drop &bull; SPACE : Instant Drop</p>
+            <p class="mt-1">C / Shift : Stash Block &bull; P : Pause</p>
+        </footer>
+    </div>
+
+    <!-- Options & Preferences Modal -->
+    <div id="settingsModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center z-50 p-4">
+        <div class="arcade-panel p-6 rounded-lg max-w-sm w-full border-2 border-purple-500">
+            <h3 class="text-sm text-purple-400 mb-4 text-center border-b border-purple-900/60 pb-2">PREFERENCES</h3>
+            
+            <!-- Sound Audio FX Switch -->
+            <div class="flex items-center justify-between mb-4 text-[10px]">
+                <label for="soundToggle" class="text-gray-300">SYNTH SOUNDS</label>
+                <input type="checkbox" id="soundToggle" class="w-4 h-4 accent-purple-500 cursor-pointer" checked>
+            </div>
+
+            <!-- Theme Visual Palette Selection -->
+            <div class="flex items-center justify-between mb-6 text-[10px]">
+                <label for="themeSelect" class="text-gray-300">GRID THEME</label>
+                <select id="themeSelect" class="bg-black text-purple-300 border border-purple-800 rounded p-1 text-[10px]">
+                    <option value="cosmic">COSMIC GRID</option>
+                    <option value="synth">MIDNIGHT SYNTH</option>
+                    <option value="cyber">CYBER NEON</option>
+                </select>
+            </div>
+
+            <div class="flex justify-end">
+                <button id="closeSettingsBtn" class="btn-arcade text-[10px] px-4 py-2 rounded text-purple-300">
+                    CLOSE
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Web Audio API Custom Sound Synthesizer -->
+    <script>
+        class CascadeAudio {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+            }
+
+            playSynthTone(freq, waveType, duration, gainVal = 0.08) {
+                if (!this.enabled) return;
+                try {
+                    this.init();
+                    if (this.ctx.state === 'suspended') {
+                        this.ctx.resume();
+                    }
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+
+                    osc.type = waveType;
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+
+                    gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                } catch (e) {
+                    console.warn('Audio synthesis issue:', e);
+                }
+            }
+
+            shift() { this.playSynthTone(220, 'sine', 0.04, 0.03); }
+            rotate() { this.playSynthTone(340, 'triangle', 0.06, 0.04); }
+            drop() { this.playSynthTone(140, 'square', 0.08, 0.06); }
+            lineClear() {
+                if (!this.enabled) return;
+                // Original ascending arpeggio chord
+                [293.66, 369.99, 440.00, 587.33].forEach((f, i) => {
+                    setTimeout(() => this.playSynthTone(f, 'sine', 0.14, 0.06), i * 50);
+                });
+            }
+            gameOver() {
+                if (!this.enabled) return;
+                [180, 140, 110, 80].forEach((f, i) => {
+                    setTimeout(() => this.playSynthTone(f, 'sawtooth', 0.2, 0.06), i * 90);
+                });
+            }
+        }
+
+        const audio = new CascadeAudio();
+    </script>
+
+    <!-- Block Cascade Engine & Custom Polyomino Definitions -->
+    <script>
+        const COLS = 10;
+        const ROWS = 20;
+        const BLOCK_SIZE = 24;
+
+        // Visual Color Themes for Blocks
+        const THEMES = {
+            cosmic: {
+                CORNER: '#8b5cf6',   // Triomino Corner (Purple)
+                LINE3: '#06b6d4',    // Triomino Line (Cyan)
+                PLUS: '#f59e0b',     // Cross/Plus 5-block (Amber)
+                BOX: '#ec4899',      // 2x2 Square (Pink)
+                S_BLOCK: '#10b981',  // S-Shape (Emerald)
+                T_WIDE: '#3b82f6',   // Wide T (Blue)
+                Z_BLOCK: '#ef4444',  // Z-Shape (Red)
+                LONG5: '#14b8a6',    // 5-block Straight (Teal)
+                border: 'rgba(255, 255, 255, 0.25)', ghost: 'rgba(255, 255, 255, 0.12)'
+            },
+            synth: {
+                CORNER: '#d946ef',
+                LINE3: '#38bdf8',
+                PLUS: '#facc15',
+                BOX: '#f43f5e',
+                S_BLOCK: '#4ade80',
+                T_WIDE: '#818cf8',
+                Z_BLOCK: '#fb923c',
+                LONG5: '#2dd4bf',
+                border: 'rgba(217, 70, 239, 0.4)', ghost: 'rgba(217, 70, 239, 0.15)'
+            },
+            cyber: {
+                CORNER: '#00ffcc',
+                LINE3: '#ff0077',
+                PLUS: '#ffff00',
+                BOX: '#0099ff',
+                S_BLOCK: '#ff9900',
+                T_WIDE: '#cc00ff',
+                Z_BLOCK: '#00ff66',
+                LONG5: '#ff0033',
+                border: 'rgba(0, 255, 204, 0.4)', ghost: 'rgba(0, 255, 204, 0.15)'
+            }
+        };
+
+        // Legally distinct Polyomino Configurations (Mix of Triominos, Tetraminos, & Pentominos)
+        const SHAPES = {
+            CORNER: [
+                [1, 1],
+                [1, 0]
+            ],
+            LINE3: [
+                [0, 1, 0],
+                [0, 1, 0],
+                [0, 1, 0]
+            ],
+            PLUS: [
+                [0, 1, 0],
+                [1, 1, 1],
+                [0, 1, 0]
+            ],
+            BOX: [
+                [1, 1],
+                [1, 1]
+            ],
+            S_BLOCK: [
+                [0, 1, 1],
+                [1, 1, 0],
+                [0, 0, 0]
+            ],
+            T_WIDE: [
+                [1, 1, 1],
+                [0, 1, 0],
+                [0, 1, 0]
+            ],
+            Z_BLOCK: [
+                [1, 1, 0],
+                [0, 1, 1],
+                [0, 0, 0]
+            ],
+            LONG5: [
+                [0, 0, 1, 0, 0],
+                [0, 0, 1, 0, 0],
+                [0, 0, 1, 0, 0],
+                [0, 0, 1, 0, 0],
+                [0, 0, 1, 0, 0]
+            ]
+        };
+
+        // Canvas & Context Setup
+        const canvas = document.getElementById('gridCanvas');
+        const ctx = canvas.getContext('2d');
+        const nextCanvas = document.getElementById('nextCanvas');
+        const nextCtx = nextCanvas.getContext('2d');
+        const holdCanvas = document.getElementById('holdCanvas');
+        const holdCtx = holdCanvas.getContext('2d');
+
+        // Game State Variables
+        let grid = createGrid();
+        let score = 0;
+        let lines = 0;
+        let level = 1;
+        let highScore = parseInt(localStorage.getItem('cascade_high_score') || '0', 10);
+        let activePiece = null;
+        let nextPiece = null;
+        let holdPiece = null;
+        let canHold = true;
+        let gameOver = false;
+        let isPaused = false;
+        let isPlaying = false;
+        let dropCounter = 0;
+        let dropInterval = 1000;
+        let lastTime = 0;
+        let animFrameId = null;
+
+        // Preference Settings
+        let settings = {
+            sound: true,
+            theme: 'cosmic'
+        };
+
+        function loadSettings() {
+            const saved = localStorage.getItem('cascade_settings');
+            if (saved) {
+                try {
+                    settings = { ...settings, ...JSON.parse(saved) };
+                } catch (e) {
+                    console.error('Settings load error:', e);
+                }
+            }
+            document.getElementById('soundToggle').checked = settings.sound;
+            document.getElementById('themeSelect').value = settings.theme;
+            audio.enabled = settings.sound;
+        }
+
+        function saveSettings() {
+            localStorage.setItem('cascade_settings', JSON.stringify(settings));
+        }
+
+        function createGrid() {
+            return Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+        }
+
+        // Random Shape Shuffler (Bag Algorithm)
+        let shapeBag = [];
+        function getNextShapeType() {
+            if (shapeBag.length === 0) {
+                shapeBag = Object.keys(SHAPES);
+                for (let i = shapeBag.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shapeBag[i], shapeBag[j]] = [shapeBag[j], shapeBag[i]];
+                }
+            }
+            return shapeBag.pop();
+        }
+
+        function createPiece(type) {
+            return {
+                type: type,
+                matrix: SHAPES[type].map(row => [...row]),
+                x: Math.floor(COLS / 2) - Math.ceil(SHAPES[type][0].length / 2),
+                y: 0
+            };
+        }
+
+        function collide(board, piece, offset = { x: 0, y: 0 }) {
+            const m = piece.matrix;
+            for (let r = 0; r < m.length; r++) {
+                for (let c = 0; c < m[r].length; c++) {
+                    if (m[r][c] !== 0) {
+                        const newX = piece.x + c + offset.x;
+                        const newY = piece.y + r + offset.y;
+                        if (newX < 0 || newX >= COLS || newY >= ROWS) {
+                            return true;
+                        }
+                        if (newY >= 0 && board[newY][newX] !== 0) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        function lockPiece() {
+            activePiece.matrix.forEach((row, r) => {
+                row.forEach((val, c) => {
+                    if (val !== 0) {
+                        const targetY = activePiece.y + r;
+                        const targetX = activePiece.x + c;
+                        if (targetY >= 0 && targetY < ROWS && targetX >= 0 && targetX < COLS) {
+                            grid[targetY][targetX] = activePiece.type;
+                        }
+                    }
+                });
+            });
+        }
+
+        function rotateMatrix(matrix) {
+            const N = matrix.length;
+            const M = matrix[0].length;
+            const result = Array.from({ length: M }, () => Array(N).fill(0));
+            for (let r = 0; r < N; r++) {
+                for (let c = 0; c < M; c++) {
+                    result[c][N - 1 - r] = matrix[r][c];
+                }
+            }
+            return result;
+        }
+
+        function moveLeft() {
+            if (!collide(grid, activePiece, { x: -1, y: 0 })) {
+                activePiece.x--;
+                audio.shift();
+            }
+        }
+
+        function moveRight() {
+            if (!collide(grid, activePiece, { x: 1, y: 0 })) {
+                activePiece.x++;
+                audio.shift();
+            }
+        }
+
+        function rotate() {
+            const originalMatrix = activePiece.matrix;
+            const rotated = rotateMatrix(activePiece.matrix);
+            activePiece.matrix = rotated;
+
+            let offset = 0;
+            if (collide(grid, activePiece)) {
+                offset = 1;
+                if (collide(grid, activePiece, { x: offset, y: 0 })) {
+                    offset = -1;
+                    if (collide(grid, activePiece, { x: offset, y: 0 })) {
+                        activePiece.matrix = originalMatrix;
+                        return;
+                    }
+                }
+            }
+            activePiece.x += offset;
+            audio.rotate();
+        }
+
+        function drop() {
+            if (!collide(grid, activePiece, { x: 0, y: 1 })) {
+                activePiece.y++;
+                dropCounter = 0;
+                return true;
+            } else {
+                lockPiece();
+                audio.drop();
+                clearCompletedRows();
+                spawnNext();
+                canHold = true;
+                return false;
+            }
+        }
+
+        function hardDrop() {
+            while (!collide(grid, activePiece, { x: 0, y: 1 })) {
+                activePiece.y++;
+                score += 2;
+            }
+            drop();
+            updateScoreUI();
+        }
+
+        function holdCurrentPiece() {
+            if (!canHold) return;
+
+            audio.rotate();
+            if (!holdPiece) {
+                holdPiece = activePiece.type;
+                spawnNext();
+            } else {
+                const temp = activePiece.type;
+                activePiece = createPiece(holdPiece);
+                holdPiece = temp;
+            }
+            canHold = false;
+            drawHoldPreview();
+        }
+
+        function spawnNext() {
+            if (!nextPiece) {
+                nextPiece = createPiece(getNextShapeType());
+            }
+            activePiece = nextPiece;
+            nextPiece = createPiece(getNextShapeType());
+
+            drawNextPreview();
+
+            if (collide(grid, activePiece)) {
+                gameOver = true;
+                isPlaying = false;
+                audio.gameOver();
+                showOverlay('CASCADE OVER', `Final Score: ${score}<br>Press START to Try Again`);
+            }
+        }
+
+        function clearCompletedRows() {
+            let cleared = 0;
+            outer: for (let r = ROWS - 1; r >= 0; r--) {
+                for (let c = 0; c < COLS; c++) {
+                    if (grid[r][c] === 0) {
+                        continue outer;
+                    }
+                }
+                const row = grid.splice(r, 1)[0].fill(0);
+                grid.unshift(row);
+                cleared++;
+                r++;
+            }
+
+            if (cleared > 0) {
+                audio.lineClear();
+                lines += cleared;
+                
+                // Original Scoring Table
+                const scoreTable = [0, 120, 350, 600, 1000, 1500];
+                score += (scoreTable[cleared] || (cleared * 300)) * level;
+
+                level = Math.floor(lines / 8) + 1;
+                dropInterval = Math.max(90, 1000 - (level - 1) * 75);
+
+                if (score > highScore) {
+                    highScore = score;
+                    localStorage.setItem('cascade_high_score', highScore.toString());
+                }
+
+                updateScoreUI();
+            }
+        }
+
+        function updateScoreUI() {
+            document.getElementById('scoreDisplay').innerText = score.toString().padStart(6, '0');
+            document.getElementById('highScoreDisplay').innerText = highScore.toString().padStart(6, '0');
+            document.getElementById('linesDisplay').innerText = lines;
+            document.getElementById('levelDisplay').innerText = level;
+        }
+
+        // Custom Geometric Glass Block Renderer
+        function drawBlock(context, x, y, type, isGhost = false) {
+            const theme = THEMES[settings.theme] || THEMES.cosmic;
+            const size = BLOCK_SIZE;
+            const px = x * size;
+            const py = y * size;
+
+            if (isGhost) {
+                context.strokeStyle = theme.ghost;
+                context.lineWidth = 1.5;
+                context.strokeRect(px + 2, py + 2, size - 4, size - 4);
+                return;
+            }
+
+            const baseColor = theme[type] || '#ffffff';
+
+            // Fill background
+            context.fillStyle = baseColor;
+            context.fillRect(px, py, size, size);
+
+            // Gem/Glass Bevel Details
+            context.fillStyle = 'rgba(255, 255, 255, 0.4)';
+            context.beginPath();
+            context.moveTo(px, py);
+            context.lineTo(px + size, py);
+            context.lineTo(px + size - 3, py + 3);
+            context.lineTo(px + 3, py + 3);
+            context.fill();
+
+            context.fillStyle = 'rgba(0, 0, 0, 0.35)';
+            context.beginPath();
+            context.moveTo(px, py + size);
+            context.lineTo(px + size, py + size);
+            context.lineTo(px + size - 3, py + size - 3);
+            context.lineTo(px + 3, py + size - 3);
+            context.fill();
+
+            // Inner Accent Diamond Design
+            context.fillStyle = 'rgba(255, 255, 255, 0.2)';
+            context.fillRect(px + 6, py + 6, size - 12, size - 12);
+        }
+
+        function draw() {
+            ctx.fillStyle = '#070710';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Subdued Grid Lines
+            ctx.strokeStyle = '#151525';
+            ctx.lineWidth = 1;
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    ctx.strokeRect(c * BLOCK_SIZE, r * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+                }
+            }
+
+            // Draw Locked Grid
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    if (grid[r][c] !== 0) {
+                        drawBlock(ctx, c, r, grid[r][c]);
+                    }
+                }
+            }
+
+            // Ghost & Active Block Rendering
+            if (activePiece && !gameOver) {
+                let ghostY = activePiece.y;
+                while (!collide(grid, activePiece, { x: 0, y: ghostY - activePiece.y + 1 })) {
+                    ghostY++;
+                }
+
+                // Ghost
+                activePiece.matrix.forEach((row, r) => {
+                    row.forEach((val, c) => {
+                        if (val !== 0) {
+                            drawBlock(ctx, activePiece.x + c, ghostY + r, activePiece.type, true);
+                        }
+                    });
+                });
+
+                // Active
+                activePiece.matrix.forEach((row, r) => {
+                    row.forEach((val, c) => {
+                        if (val !== 0) {
+                            drawBlock(ctx, activePiece.x + c, activePiece.y + r, activePiece.type);
+                        }
+                    });
+                });
+            }
+        }
+
+        function drawPreview(context, pieceType) {
+            context.fillStyle = '#070710';
+            context.fillRect(0, 0, 80, 80);
+
+            if (!pieceType) return;
+
+            const matrix = SHAPES[pieceType];
+            const size = 14;
+            const offsetX = Math.floor((80 - matrix[0].length * size) / 2);
+            const offsetY = Math.floor((80 - matrix.length * size) / 2);
+
+            const theme = THEMES[settings.theme] || THEMES.cosmic;
+            const color = theme[pieceType];
+
+            matrix.forEach((row, r) => {
+                row.forEach((val, c) => {
+                    if (val !== 0) {
+                        const px = offsetX + c * size;
+                        const py = offsetY + r * size;
+                        
+                        context.fillStyle = color;
+                        context.fillRect(px, py, size, size);
+                        
+                        context.fillStyle = 'rgba(255,255,255,0.3)';
+                        context.fillRect(px, py, size, 2);
+                        context.fillRect(px, py, 2, size);
+                        context.fillStyle = 'rgba(0,0,0,0.3)';
+                        context.fillRect(px, py + size - 2, size, 2);
+                        context.fillRect(px + size - 2, py, 2, size);
+                    }
+                });
+            });
+        }
+
+        function drawNextPreview() {
+            if (nextPiece) drawPreview(nextCtx, nextPiece.type);
+        }
+
+        function drawHoldPreview() {
+            drawPreview(holdCtx, holdPiece);
+        }
+
+        function update(time = 0) {
+            const deltaTime = time - lastTime;
+            lastTime = time;
+
+            if (isPlaying && !isPaused && !gameOver) {
+                dropCounter += deltaTime;
+                if (dropCounter > dropInterval) {
+                    drop();
+                }
+                draw();
+            }
+
+            animFrameId = requestAnimationFrame(update);
+        }
+
+        function startGame() {
+            grid = createGrid();
+            score = 0;
+            lines = 0;
+            level = 1;
+            dropInterval = 1000;
+            gameOver = false;
+            isPaused = false;
+            isPlaying = true;
+            holdPiece = null;
+            canHold = true;
+            shapeBag = [];
+
+            updateScoreUI();
+            drawHoldPreview();
+
+            nextPiece = createPiece(getNextShapeType());
+            spawnNext();
+
+            hideOverlay();
+            
+            lastTime = performance.now();
+            if (!animFrameId) {
+                update();
+            }
+        }
+
+        function togglePause() {
+            if (!isPlaying || gameOver) return;
+            isPaused = !isPaused;
+            const pauseBtn = document.getElementById('pauseBtn');
+            if (isPaused) {
+                pauseBtn.innerText = 'RESUME [P]';
+                showOverlay('PAUSED', 'Press P or RESUME to continue');
+            } else {
+                pauseBtn.innerText = 'PAUSE [P]';
+                hideOverlay();
+            }
+        }
+
+        function showOverlay(title, subtitle) {
+            document.getElementById('overlayTitle').innerHTML = title;
+            document.getElementById('overlaySubtitle').innerHTML = subtitle;
+            document.getElementById('overlay').classList.remove('hidden');
+        }
+
+        function hideOverlay() {
+            document.getElementById('overlay').classList.add('hidden');
+        }
+
+        // Keyboard Controls
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'KeyP') {
+                togglePause();
+                return;
+            }
+
+            if (!isPlaying || isPaused || gameOver) return;
+
+            switch (e.code) {
+                case 'ArrowLeft':
+                case 'KeyA':
+                    moveLeft();
+                    break;
+                case 'ArrowRight':
+                case 'KeyD':
+                    moveRight();
+                    break;
+                case 'ArrowDown':
+                case 'KeyS':
+                    drop();
+                    break;
+                case 'ArrowUp':
+                case 'KeyW':
+                    rotate();
+                    break;
+                case 'Space':
+                    e.preventDefault();
+                    hardDrop();
+                    break;
+                case 'KeyC':
+                case 'ShiftLeft':
+                case 'ShiftRight':
+                    holdCurrentPiece();
+                    break;
+            }
+            draw();
+        });
+
+        // Touch Control Listeners
+        document.getElementById('btnLeft').addEventListener('click', () => { if(isPlaying && !isPaused) { moveLeft(); draw(); } });
+        document.getElementById('btnRight').addEventListener('click', () => { if(isPlaying && !isPaused) { moveRight(); draw(); } });
+        document.getElementById('btnRotate').addEventListener('click', () => { if(isPlaying && !isPaused) { rotate(); draw(); } });
+        document.getElementById('btnDown').addEventListener('click', () => { if(isPlaying && !isPaused) { drop(); draw(); } });
+        document.getElementById('btnDrop').addEventListener('click', () => { if(isPlaying && !isPaused) { hardDrop(); draw(); } });
+        document.getElementById('btnHold').addEventListener('click', () => { if(isPlaying && !isPaused) { holdCurrentPiece(); draw(); } });
+
+        // Action Handlers
+        document.getElementById('startBtn').addEventListener('click', () => {
+            audio.init();
+            startGame();
+        });
+        
+        document.getElementById('pauseBtn').addEventListener('click', togglePause);
+
+        document.getElementById('resetScoreBtn').addEventListener('click', () => {
+            if (confirm('Reset high score record?')) {
+                highScore = 0;
+                localStorage.removeItem('cascade_high_score');
+                updateScoreUI();
+            }
+        });
+
+        // Settings Modal Handlers
+        const settingsModal = document.getElementById('settingsModal');
+        document.getElementById('settingsBtn').addEventListener('click', () => {
+            settingsModal.classList.remove('hidden');
+        });
+        document.getElementById('closeSettingsBtn').addEventListener('click', () => {
+            settingsModal.classList.add('hidden');
+        });
+
+        document.getElementById('soundToggle').addEventListener('change', (e) => {
+            settings.sound = e.target.checked;
+            audio.enabled = settings.sound;
+            saveSettings();
+        });
+
+        document.getElementById('themeSelect').addEventListener('change', (e) => {
+            settings.theme = e.target.value;
+            saveSettings();
+            draw();
+            drawNextPreview();
+            drawHoldPreview();
+        });
+
+        // Startup Initialization
+        window.onload = function() {
+            loadSettings();
+            updateScoreUI();
+            draw();
+            showOverlay('BLOCK CASCADE', 'Press START GAME to Play!');
+        };
+    </script>
+</body>
+</html>
