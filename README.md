@@ -7,6 +7,7 @@ This repository is a collection of small, browser-based applications generated w
 - [Block Cascade](#block-cascade)
 - [Drum Pad Machine](#drum-pad-machine)
 - [Finance Planner](#finance-planner)
+- [Parrondo Portfolio Lab](#parrondo-portfolio-lab)
 - [Time Tracker](#time-tracker)
 
 ## Projects
@@ -28,6 +29,12 @@ A 16-pad drum machine and step sequencer with configurable tempo, recording, man
 A browser-based dashboard for exploring personal finance and brokerage transaction CSVs. It provides filters, summary metrics, visualizations, and a searchable transaction table.
 
 [Read the Finance Planner README](finance-planner/README.md)
+
+### Parrondo Portfolio Lab
+
+A browser-based historical portfolio backtester that compares strategies for two uploaded stock price series. It supports regional CSV files, cumulative euro values, periodic 50/50 rebalancing, momentum, alternating allocation, and strategy comparison.
+
+[Read the Parrondo Portfolio Lab README](parrondo paradox/README.md)
 
 ### Time Tracker
 

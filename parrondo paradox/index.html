@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101415">
+  <title>Parrondo Portfolio Lab</title>
+  <style>
+    :root{--bg:#101415;--panel:#182021;--panel2:#202a2b;--line:#3b4b4d;--muted:#94a5a3;--text:#e8ebe4;--gold:#e6c65b;--red:#d8775e;--blue:#56aabb;--green:#91c58b}
+    *{box-sizing:border-box} body{margin:0;min-width:320px;color:var(--text);background:radial-gradient(circle at 80% 5%,#24404733,transparent 32rem),linear-gradient(145deg,#101415,#0d1213);font:15px/1.5 "Segoe UI",system-ui,sans-serif}
+    .shell{width:min(1480px,calc(100% - 48px));margin:auto;padding:38px 0 58px} header{display:flex;justify-content:space-between;gap:32px;align-items:end;margin-bottom:28px}.eyebrow,.label,.kicker{color:var(--muted);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase}
+    h1{font:500 clamp(2.2rem,6vw,4.8rem)/.95 Georgia,serif;letter-spacing:-.05em;margin:7px 0}.intro{color:#bdc7c1;max-width:680px;margin:13px 0 0}.plate{color:var(--muted);font-size:.72rem;line-height:1.7;text-align:right;letter-spacing:.08em}
+    .layout{display:grid;grid-template-columns:380px minmax(0,1fr);gap:24px;align-items:start}.panel{background:linear-gradient(145deg,#1c2728f5,#151d1ef5);border:1px solid var(--line);border-radius:8px;box-shadow:0 14px 40px #00000042}.controls{padding:24px;position:sticky;top:16px}.controls h2,.panel h2{font:500 1.3rem Georgia,serif;margin:0 0 17px}.group{border-top:1px solid #94a5a326;padding:16px 0}.group:first-of-type{border-top:0;padding-top:0}
+    label{color:#cbd3cc;font-size:.87rem;display:block;margin-bottom:6px}input[type=file],select,input[type=number]{width:100%;color:var(--text);background:#101718;border:1px solid var(--line);border-radius:4px;padding:9px;font:inherit}input[type=file]{font-size:.78rem}.help,.status{color:var(--muted);font-size:.76rem;margin:9px 0 0}.row{display:grid;grid-template-columns:1fr 1fr;gap:9px}.button{border:1px solid var(--line);border-radius:4px;background:#202b2c;color:#d7dfd7;padding:10px 12px;font:600 .78rem "Segoe UI",sans-serif;cursor:pointer}.button:hover{border-color:var(--gold);color:var(--gold)}.primary{width:100%;background:var(--gold);border-color:var(--gold);color:#101415;margin-top:8px}.primary:hover{background:#f1d570;color:#101415}.secondary{width:100%;margin-top:8px;background:transparent}.file-name{color:var(--gold);font-size:.78rem;margin-top:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .results{display:grid;gap:18px;min-width:0}.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.stat{padding:15px;border:1px solid var(--line);border-radius:6px;background:#182021cc}.stat strong{display:block;font:500 clamp(1.1rem,2.7vw,1.8rem) Georgia,serif;margin-top:4px;font-variant-numeric:tabular-nums}.stat small{color:var(--muted);font-size:.74rem}.stat:nth-child(1) strong{color:var(--gold)}.stat:nth-child(2) strong{color:var(--green)}.stat:nth-child(3) strong{color:var(--red)}.stat:nth-child(4) strong{color:var(--blue)}.stat:nth-child(5) strong{color:#c7b1e8}
+    .chart-panel,.table-panel{padding:21px}.heading{display:flex;justify-content:space-between;align-items:baseline;gap:15px}.heading p{margin:0;color:var(--muted);font-size:.76rem}canvas{width:100%;height:360px;display:block;margin-top:6px}.legend{display:flex;flex-wrap:wrap;gap:15px;color:var(--muted);font-size:.76rem;margin-top:10px}.key{display:flex;align-items:center;gap:6px}.swatch{width:22px;height:3px;border-radius:3px}.a{background:var(--red)}.b{background:var(--blue)}.s{background:var(--gold)}
+    table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:4px}th,td{text-align:right;padding:10px 8px;border-bottom:1px solid #94a5a326;font-variant-numeric:tabular-nums}th:first-child,td:first-child{text-align:left}th{color:var(--muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.08em}.positive{color:var(--green)}.negative{color:var(--red)}footer{text-align:center;color:#71817f;font-size:.76rem;margin-top:25px}
+    @media(max-width:900px){header{align-items:start;flex-direction:column}.plate{text-align:left}.layout{grid-template-columns:1fr}.controls{position:static}.stats{grid-template-columns:repeat(3,1fr)}}@media(max-width:570px){.shell{width:calc(100% - 22px);padding-top:25px}.stats{grid-template-columns:1fr 1fr}.row{grid-template-columns:1fr}canvas{height:285px}.table-panel{overflow:auto}table{min-width:560px}}
+  </style>
+</head>
+<body>
+<main class="shell">
+  <header><div><div class="eyebrow">Historical portfolio experiment</div><h1>Parrondo portfolio lab</h1><p class="intro">Load two price series and test whether switching between losing paths can create a better outcome.</p></div><div class="plate">LOCAL ANALYSIS / NO DATA LEAVES THIS DEVICE</div></header>
+  <div class="layout">
+    <aside class="panel controls">
+      <h2>Experiment</h2>
+      <div class="group"><div class="kicker">Price history</div><label for="csv">CSV file</label><input id="csv" type="file" accept=".csv,text/csv"><div id="fileName" class="file-name">No file selected</div><p class="help">Expected: one date column and two price columns. Dates must be ordered or will be sorted.</p><button id="sample" class="button secondary">Load sample history</button></div>
+      <div class="group"><div class="kicker">Columns</div><label for="assetA">Asset A</label><select id="assetA" disabled></select><label for="assetB" style="margin-top:10px">Asset B</label><select id="assetB" disabled></select></div>
+<div class="group"><div class="kicker">Portfolio total</div><div class="row"><div><label for="capital">Total starting capital (€)</label><input id="capital" type="number" min="1" step="100" value="10000"></div><div><label for="fee">Fixed fee per trade (€)</label><input id="fee" type="number" min="0" max="1000" step=".01" value="1.00"></div></div><p class="help">This is the complete portfolio budget, not an amount per stock. Equal weight initially invests €50/€50 per €100 of capital.</p></div>
+      <div class="group"><div class="kicker">Strategy</div><label for="strategy">Allocation rule</label><select id="strategy"><option value="holdA">Hold Asset A</option><option value="holdB">Hold Asset B</option><option value="equal">Equal weight · rebalance</option><option value="momentum">Momentum · hold recent winner</option><option value="alternate">Alternate · switch by period</option><option value="best">Best hindsight path · reference only</option></select><div id="lookbackWrap" style="margin-top:10px"><label for="lookback">Lookback / rebalance period (days)</label><input id="lookback" type="number" min="1" max="1000" value="20"></div><p class="help">Strategies trade at the close of each available observation. The hindsight line is not investable and is shown only as an upper-bound reference.</p></div>
+      <p id="status" class="status" role="status">Load a CSV or change a control to run the backtest.</p>
+    </aside>
+    <section class="results">
+      <div class="stats"><div class="stat"><div class="label">Final portfolio value</div><strong id="ending">—</strong><small>cumulative selected strategy</small></div><div class="stat"><div class="label">Total return</div><strong id="return">—</strong><small>after fees</small></div><div class="stat"><div class="label">Max drawdown</div><strong id="drawdown">—</strong><small>peak to trough</small></div><div class="stat"><div class="label">Trades</div><strong id="trades">—</strong><small>allocation changes</small></div><div class="stat"><div class="label">Observations</div><strong id="observations">—</strong><small>price rows</small></div></div>
+      <div class="panel chart-panel"><div class="heading"><h2>Cumulative portfolio value</h2><p id="chartNote">Awaiting price history</p></div><canvas id="chart" aria-label="Portfolio value chart"></canvas><div class="legend"><span class="key"><i class="swatch a"></i><span id="legendA">Asset A component (50%)</span></span><span class="key"><i class="swatch b"></i><span id="legendB">Asset B component (50%)</span></span><span class="key"><i class="swatch s"></i>Selected strategy total</span></div></div>
+      <div class="panel table-panel"><div class="heading"><h2>Strategy comparison</h2><p>Same history, same total starting capital</p></div><table><thead><tr><th>Strategy</th><th>Ending value</th><th>Return</th><th>Max drawdown</th><th>Trades</th></tr></thead><tbody id="comparison"><tr><td colspan="5" style="text-align:left;color:var(--muted)">Run a backtest to compare strategies.</td></tr></tbody></table></div>
+    </section>
+  </div>
+  <footer>Historical results are not forecasts. Fees, slippage, dividends, splits, missing observations, and tax are not inferred from the CSV. All processing happens in your browser.</footer>
+</main>
+<script>
+(() => {
+  const $=id=>document.getElementById(id); let rows=[],headers=[],last=null;
+  const colors={a:"#d8775e",b:"#56aabb",s:"#e6c65b",grid:"#3b4b4d",text:"#94a5a3"};
+  function parseCSV(text){const lines=text.replace(/^\uFEFF/,"").split(/\r?\n/).map(line=>line.trim()).filter(Boolean);if(!lines.length)throw Error("The CSV is empty.");const delimiter=(lines[0].includes(";")&&!lines[0].includes(","))||lines[0].split(";").length>1?";":",";const split=line=>{let out=[],cur="",quote=false;for(const ch of line){if(ch==='"')quote=!quote;else if(ch===delimiter&&!quote){out.push(cur.trim());cur=""}else cur+=ch}out.push(cur.trim());return out};const h=split(lines[0]).map(x=>x.replace(/^"|"$/g,"").trim());const data=lines.slice(1).map(line=>split(line)).map(v=>{const obj={};h.forEach((key,i)=>obj[key]=v[i]);return obj});return {h,data}}
+  function dateValue(v){const d=new Date(v);return Number.isNaN(d.getTime())?null:d}
+  function numeric(v){const raw=String(v??"").trim();if(!raw||/^#(?:N\/A|VALUE!|DIV\/0!|NAME\?|REF!|NUM!|NULL!)$/i.test(raw))return null;const normalized=raw.replace(/\s/g,"").replace(/[€$%]/g,"").replace(",",".");const n=Number(normalized);return Number.isFinite(n)?n:null}
+  function load(text,name){const parsed=parseCSV(text);headers=parsed.h;const dateHeader=headers.find(h=>/date|time|day/i.test(h))||headers[0];const numericHeaders=headers.filter(h=>h!==dateHeader&&parsed.data.some(r=>numeric(r[h])!==null));if(numericHeaders.length<2)throw Error("CSV needs a date column and at least two numeric price columns.");rows=parsed.data.map(r=>({date:dateValue(r[dateHeader]),values:numericHeaders.map(h=>numeric(r[h]))})).filter(r=>r.date&&r.values.every(v=>v>0)).sort((x,y)=>x.date-y.date);if(rows.length<2)throw Error("Not enough valid dated price rows.");fillSelects(numericHeaders);$("fileName").textContent=name;run()}
+  function fillSelects(names){["assetA","assetB"].forEach((id,i)=>{$(id).innerHTML="";names.forEach((n,j)=>{const o=document.createElement("option");o.value=j;o.textContent=n;$(id).append(o)});$(id).disabled=false});$("assetB").selectedIndex=1}
+  function selectedRows(){const ai=+$("assetA").value,bi=+$("assetB").value;return rows.map(r=>({date:r.date,a:r.values[ai],b:r.values[bi]}))}
+  function portfolio(kind, data) {
+    const start = +$("capital").value || 10000;
+    const fee = +$("fee").value || 0;
+    const period = Math.max(1, +$("lookback").value || 20);
+    const values = [];
+    let value = start;
+    let peak = start;
+    let drawdown = 0;
+    let trades = 0;
+    let lastAllocation = null;
+    let unitsA = 0;
+    let unitsB = 0;
+
+    function allocationAt(index) {
+      if (kind === "holdA") return 1;
+      if (kind === "holdB") return 0;
+      if (kind === "equal") return 0.5;
+      if (kind === "alternate") return Math.floor(index / period) % 2 === 0 ? 1 : 0;
+      if (kind === "momentum") {
+        if (index < period) return 0.5;
+        const returnA = data[index].a / data[index - period].a - 1;
+        const returnB = data[index].b / data[index - period].b - 1;
+        return returnA >= returnB ? 1 : 0;
+      }
+      if (kind === "best") {
+        if (index === 0) return 0.5;
+        return data[index].a / data[0].a >= data[index].b / data[0].b ? 1 : 0;
+      }
+      return 0.5;
+    }
+
+    function allocationKey(weightA) {
+      return weightA === 1 ? "A" : weightA === 0 ? "B" : "50/50";
+    }
+
+    const initialWeight = allocationAt(0);
+    unitsA = start * initialWeight / data[0].a;
+    unitsB = start * (1 - initialWeight) / data[0].b;
+    lastAllocation = allocationKey(initialWeight);
+
+    for (let i = 0; i < data.length; i++) {
+      value = unitsA * data[i].a + unitsB * data[i].b;
+
+      const shouldRebalance = kind === "equal"
+        ? i > 0 && i % period === 0
+        : i > 0;
+
+      if (shouldRebalance) {
+        const targetWeight = allocationAt(i);
+        const nextAllocation = allocationKey(targetWeight);
+        const allocationChanged = nextAllocation !== lastAllocation;
+
+        if (allocationChanged || kind === "equal") {
+          value = Math.max(0, value - fee);
+          unitsA = value * targetWeight / data[i].a;
+          unitsB = value * (1 - targetWeight) / data[i].b;
+          trades += kind === "equal" ? 2 : allocationChanged ? 1 : 0;
+          lastAllocation = nextAllocation;
+        }
+      }
+
+      values.push(value);
+      peak = Math.max(peak, value);
+      drawdown = Math.max(drawdown, peak > 0 ? (peak - value) / peak : 0);
+    }
+
+    return { values, end: value, ret: value / start - 1, dd: drawdown, trades };
+  }  function run(){if(rows.length<2){$("status").textContent="Load a CSV or use the sample history.";return}const data=selectedRows();const strategy=$("strategy").value;const names={holdA:"Hold Asset A",holdB:"Hold Asset B",equal:"Equal weight",momentum:"Momentum",alternate:"Alternate",best:"Best hindsight"};const results={};Object.keys(names).forEach(k=>results[k]=portfolio(k,data));last={data,results,strategy,names};const r=results[strategy];$("ending").textContent=money(r.end);$("return").textContent=pct(r.ret);$("drawdown").textContent=pct(-r.dd);$("trades").textContent=r.trades;$("observations").textContent=data.length;$("legendA").textContent=$("assetA").selectedOptions[0]?.textContent||"Asset A";$("legendB").textContent=$("assetB").selectedOptions[0]?.textContent||"Asset B";$("chartNote").textContent=`${data[0].date.toLocaleDateString()} → ${data.at(-1).date.toLocaleDateString()}`;$("status").textContent=`Backtested ${data.length} observations using ${names[strategy]}.`;draw();comparison()}
+  function money(n){return new Intl.NumberFormat("de-DE",{style:"currency",currency:"EUR",minimumFractionDigits:2,maximumFractionDigits:2}).format(n)}function pct(n){return `${n>=0?"+":""}${(n*100).toFixed(2)}%`}
+  function comparison(){const body=$("comparison");body.innerHTML="";Object.entries(last.names).forEach(([k,n])=>{const r=last.results[k],tr=document.createElement("tr");tr.innerHTML=`<td>${n}</td><td>${money(r.end)}</td><td class="${r.ret>=0?"positive":"negative"}">${pct(r.ret)}</td><td class="negative">${pct(-r.dd)}</td><td>${r.trades}</td>`;body.append(tr)})}
+  function draw(){const c=$("chart"),rect=c.getBoundingClientRect(),ratio=devicePixelRatio||1;c.width=rect.width*ratio;c.height=rect.height*ratio;const x=c.getContext("2d");x.setTransform(ratio,0,0,ratio,0,0);const w=rect.width,h=rect.height,p={l:52,r:15,t:20,b:34};x.clearRect(0,0,w,h);const halfCapital = (+$("capital").value || 10000) / 2;const series=[last.results.holdA.values.map((value)=>value*0.5),last.results.holdB.values.map((value)=>value*0.5),last.results[last.strategy].values];const max=Math.max(...series.flat())*1.05,min=Math.min(...series.flat())*.95;const X=i=>p.l+i/(last.data.length-1)*(w-p.l-p.r),Y=v=>p.t+(max-v)/(max-min)*(h-p.t-p.b);x.font="12px Segoe UI";for(let i=0;i<=4;i++){const v=min+(max-min)*i/4,y=Y(v);x.strokeStyle=colors.grid;x.globalAlpha=.6;x.beginPath();x.moveTo(p.l,y);x.lineTo(w-p.r,y);x.stroke();x.globalAlpha=1;x.fillStyle=colors.text;x.fillText(money(v),5,y+4)};[["holdA","#d8775e",2],["holdB","#56aabb",2],[last.strategy,"#e6c65b",3]].forEach(([k,color,l])=>{x.strokeStyle=color;x.lineWidth=l;x.beginPath();const chartValues=k==="holdA"?last.results[k].values.map((v)=>v*0.5):k==="holdB"?last.results[k].values.map((v)=>v*0.5):last.results[k].values;chartValues.forEach((v,i)=>i?x.lineTo(X(i),Y(v)):x.moveTo(X(i),Y(v)));x.stroke()});x.fillStyle=colors.text;x.fillText("observations",w-83,h-8)}
+  function sample(){let a=100,b=100,out=["Date,Northwind,Southridge"],d=new Date("2020-01-01");for(let i=0;i<260;i++){const phase=i/260;a*=1+(Math.sin(i*.21)*.002+.004+(i%47===0?-.03:0));b*=1+(Math.cos(i*.13)*.0015+.0035+(i%61===0?-.026:0));out.push(`${d.toISOString().slice(0,10)},${a.toFixed(2)},${b.toFixed(2)}`);d.setDate(d.getDate()+1)}load(out.join("\n"),"sample-history.csv")}
+  $("csv").addEventListener("change",e=>{const f=e.target.files[0];if(!f)return;const reader=new FileReader();reader.onload=()=>{try{load(reader.result,f.name)}catch(err){$("status").textContent=err.message}};reader.readAsText(f)});$("sample").addEventListener("click",sample);["assetA","assetB","capital","fee","lookback","strategy"].forEach(id=>$(id).addEventListener("change",run));addEventListener("resize",()=>last&&draw());
+})();
+</script>
+</body>
+</html>
