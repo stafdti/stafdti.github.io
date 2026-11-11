@@ -1,3 +1,5 @@
+[<< Back](../README.md)
+
 # Time Tracker
 
 A **single-page web application** that runs entirely in the browser (no backend) to track time spent on freely-defined topics ("activities"). Click a topic to start a stopwatch for it; click another topic to stop the first and start the second. All settings (topics) and tracked data (time entries) are persisted in `localStorage`, and the complete state can be exported to / imported from a JSON file. A weekly bar chart at the top of the page visualizes minutes tracked per day (Monday–Friday of the current week) broken down by topic.

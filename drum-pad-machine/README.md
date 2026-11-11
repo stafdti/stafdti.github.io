@@ -1,3 +1,5 @@
+[<< Back](../README.md)
+
 # Drum Pad Machine
 
 A browser-based drum pad / step-sequencer built with plain HTML, CSS and JavaScript (no build tools required). UI styled with [Bootstrap](https://getbootstrap.com/) (loaded via CDN).

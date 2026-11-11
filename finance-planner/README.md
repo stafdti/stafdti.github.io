@@ -1,3 +1,5 @@
+[<< Back](../README.md)
+
 # Finance Planner
 
 A **single-page web application** that runs entirely in the browser (no backend required) to visualize and analyze a personal finance / brokerage transaction export (Trade Republic style CSV). It uses Bootstrap for the UI, Chart.js for visualizations, and PapaParse for robust CSV parsing — all loaded from CDN, with plain vanilla JavaScript for the application logic.
