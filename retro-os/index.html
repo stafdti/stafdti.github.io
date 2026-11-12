@@ -157,7 +157,7 @@
             background-color: #051405 !important;
             opacity: 1 !important;
             isolation: isolate;
-            border: 3px solid #33ff33 !important;
+            border: 3px solid var(--main-color, #33ff33) !important;
             box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.7);
             display: flex;
             flex-direction: column;
@@ -707,13 +707,21 @@
             }
         }
 
+        function applyWindowTheme() {
+            const styles = getComputedStyle(document.body);
+            const backgroundColor = styles.getPropertyValue('--bg-color').trim() || '#051405';
+            const borderColor = styles.getPropertyValue('--main-color').trim() || '#33ff33';
+
+            document.querySelectorAll('.retro-window').forEach(win => {
+                win.style.setProperty('background-color', backgroundColor, 'important');
+                win.style.setProperty('border-color', borderColor, 'important');
+            });
+        }
+
         function bringToFront(winElement) {
             zIndexCounter++;
             winElement.style.zIndex = zIndexCounter;
-            winElement.style.backgroundColor =
-                getComputedStyle(document.body).getPropertyValue('--bg-color').trim() || '#051405';
-            winElement.style.borderColor =
-                getComputedStyle(document.body).getPropertyValue('--main-color').trim() || '#33ff33';
+            applyWindowTheme();
         }
 
         function startDrag(e, windowId) {
@@ -800,6 +808,7 @@
 
         function setTheme(themeName) {
             document.body.setAttribute('data-theme', themeName);
+            applyWindowTheme();
             playRetroSound('beep');
         }
 
