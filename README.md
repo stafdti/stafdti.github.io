@@ -8,6 +8,7 @@ This repository is a collection of small, browser-based applications generated w
 - [Drum Pad Machine](#drum-pad-machine)
 - [Finance Planner](#finance-planner)
 - [Parrondo Portfolio Lab](#parrondo-portfolio-lab)
+- [RetroOS 1984](#retroos-1984)
 - [Time Tracker](#time-tracker)
 
 ## Projects
@@ -35,6 +36,12 @@ A browser-based dashboard for exploring personal finance and brokerage transacti
 A browser-based historical portfolio backtester that compares strategies for two uploaded stock price series. It supports regional CSV files, cumulative euro values, periodic 50/50 rebalancing, momentum, alternating allocation, and strategy comparison.
 
 [Read the Parrondo Portfolio Lab README](parrondo paradox/README.md)
+
+### RetroOS 1984
+
+A browser-based retro workstation simulation with draggable application windows, CRT effects, selectable monitor themes, synthesized audio, a text editor, pixel painter, calculator, synthesizer, space game, and system control panel.
+
+[Read the RetroOS README](retro-os/README.md)
 
 ### Time Tracker
 

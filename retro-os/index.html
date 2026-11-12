@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full select-none">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RetroOS 1984 - Retro Workstation Simulation</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for Retro Pixel Aesthetics -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* Custom Fonts */
+        .font-pixel { font-family: 'VT323', monospace; }
+        .font-mono-tech { font-family: 'Share Tech Mono', monospace; }
+
+        /* Color Themes via CSS Variables */
+        body[data-theme="green"] {
+            --bg-color: #051405;
+            --main-color: #33ff33;
+            --dim-color: #116611;
+            --dark-color: #020a02;
+            --highlight-color: #66ff66;
+            --glass-bg: #051405;
+            --border-color: #33ff33;
+        }
+        body[data-theme="amber"] {
+            --bg-color: #1a0f00;
+            --main-color: #ffb000;
+            --dim-color: #885e00;
+            --dark-color: #0a0600;
+            --highlight-color: #ffd066;
+            --glass-bg: #1a0f00;
+            --border-color: #ffb000;
+        }
+        body[data-theme="cyan"] {
+            --bg-color: #00131a;
+            --main-color: #00f3ff;
+            --dim-color: #006b70;
+            --dark-color: #00080d;
+            --highlight-color: #80f9ff;
+            --glass-bg: #00131a;
+            --border-color: #00f3ff;
+        }
+        body[data-theme="bw"] {
+            --bg-color: #111111;
+            --main-color: #eeeeee;
+            --dim-color: #666666;
+            --dark-color: #000000;
+            --highlight-color: #ffffff;
+            --glass-bg: #111111;
+            --border-color: #eeeeee;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--main-color);
+            font-family: 'VT323', monospace;
+            overflow: hidden;
+            letter-spacing: 0.5px;
+        }
+
+        /* Border & Glow Effects */
+        .retro-border {
+            border: 2px solid var(--main-color);
+            box-shadow: 0 0 8px rgba(0,0,0,0.5), inset 0 0 4px var(--dim-color);
+        }
+        .retro-glow {
+            text-shadow: 0 0 5px var(--main-color);
+        }
+        .retro-box-glow {
+            box-shadow: 0 0 10px var(--dim-color);
+        }
+
+        /* CRT Effects Overlay */
+        #crt-overlay {
+            z-index: 1 !important;
+        }
+
+        #windows-layer {
+            z-index: 100 !important;
+        }
+
+        .crt-scanlines {
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.35) 50%
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+
+        .crt-vignette {
+            box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.7);
+            pointer-events: none;
+        }
+
+        .crt-screen-curved {
+            border-radius: 20px / 20px;
+            transform: scale(0.998);
+        }
+
+        @keyframes crt-flicker {
+            0% { opacity: 0.98; }
+            50% { opacity: 1; }
+            100% { opacity: 0.97; }
+        }
+
+        .crt-flicker-active {
+            animation: crt-flicker 0.15s infinite;
+        }
+
+        /* Custom Retro Scrollbars */
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+            background: var(--dark-color);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--dim-color);
+            border: 1px solid var(--main-color);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--main-color);
+        }
+
+        /* UI Element Override */
+        button, input, select, textarea {
+            background-color: var(--dark-color);
+            color: var(--main-color);
+            border: 1px solid var(--main-color);
+            font-family: 'VT323', monospace;
+            outline: none;
+        }
+        button:hover {
+            background-color: var(--main-color);
+            color: var(--dark-color);
+        }
+        button:active {
+            transform: translate(1px, 1px);
+        }
+
+        /* Desktop Icon Focus */
+        .desktop-icon:hover {
+            background-color: var(--dim-color);
+        }
+
+        /* Window Styling */
+        .retro-window {
+            position: absolute;
+            box-sizing: border-box;
+            background: #051405 !important;
+            background-color: #051405 !important;
+            opacity: 1 !important;
+            isolation: isolate;
+            border: 3px solid #33ff33 !important;
+            box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            min-width: 280px;
+            min-height: 200px;
+        }
+        .window-header {
+            background-color: var(--main-color);
+            color: var(--dark-color);
+            font-weight: bold;
+            padding: 2px 6px;
+            cursor: move;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .window-header .win-btn {
+            background: var(--dark-color);
+            color: var(--main-color);
+            width: 20px;
+            height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            line-height: 1;
+            margin-left: 4px;
+            border: 1px solid var(--dark-color);
+        }
+        .window-header .win-btn:hover {
+            background: var(--highlight-color);
+            color: var(--dark-color);
+        }
+
+        /* Pixel Canvas Grid */
+        #pixel-canvas {
+            image-rendering: pixelated;
+            cursor: crosshair;
+        }
+    </style>
+</head>
+<body data-theme="green" class="h-screen w-screen flex flex-col relative overflow-hidden font-pixel">
+
+    <!-- CRT Visual Overlay Layer -->
+    <div id="crt-overlay" class="absolute inset-0 z-50 crt-scanlines crt-vignette crt-screen-curved crt-flicker-active pointer-events-none"></div>
+
+    <!-- MAIN DESKTOP AREA -->
+    <div id="desktop" class="flex-1 relative w-full h-full p-4 overflow-hidden flex flex-wrap content-start gap-6">
+        
+        <!-- Desktop Icons -->
+        <div class="desktop-icon flex flex-col items-center justify-center p-2 rounded cursor-pointer w-24 text-center group" onclick="openWindow('app-synthwriter')">
+            <div class="w-12 h-12 flex items-center justify-center border-2 border-[var(--main-color)] bg-[var(--dark-color)] mb-1 group-hover:bg-[var(--main-color)] group-hover:text-[var(--dark-color)] transition-colors">
+                <i class="fa-solid fa-file-lines text-2xl"></i>
+            </div>
+            <span class="text-lg leading-tight retro-glow bg-[var(--dark-color)] px-1">SynthWriter</span>
+        </div>
+
+        <div class="desktop-icon flex flex-col items-center justify-center p-2 rounded cursor-pointer w-24 text-center group" onclick="openWindow('app-painter')">
+            <div class="w-12 h-12 flex items-center justify-center border-2 border-[var(--main-color)] bg-[var(--dark-color)] mb-1 group-hover:bg-[var(--main-color)] group-hover:text-[var(--dark-color)] transition-colors">
+                <i class="fa-solid fa-palette text-2xl"></i>
+            </div>
+            <span class="text-lg leading-tight retro-glow bg-[var(--dark-color)] px-1">PixelPaint</span>
+        </div>
+
+        <div class="desktop-icon flex flex-col items-center justify-center p-2 rounded cursor-pointer w-24 text-center group" onclick="openWindow('app-calc')">
+            <div class="w-12 h-12 flex items-center justify-center border-2 border-[var(--main-color)] bg-[var(--dark-color)] mb-1 group-hover:bg-[var(--main-color)] group-hover:text-[var(--dark-color)] transition-colors">
+                <i class="fa-solid fa-calculator text-2xl"></i>
+            </div>
+            <span class="text-lg leading-tight retro-glow bg-[var(--dark-color)] px-1">RetroCalc</span>
+        </div>
+
+        <div class="desktop-icon flex flex-col items-center justify-center p-2 rounded cursor-pointer w-24 text-center group" onclick="openWindow('app-tunes')">
+            <div class="w-12 h-12 flex items-center justify-center border-2 border-[var(--main-color)] bg-[var(--dark-color)] mb-1 group-hover:bg-[var(--main-color)] group-hover:text-[var(--dark-color)] transition-colors">
+                <i class="fa-solid fa-music text-2xl"></i>
+            </div>
+            <span class="text-lg leading-tight retro-glow bg-[var(--dark-color)] px-1">SynthTunes</span>
+        </div>
+
+        <div class="desktop-icon flex flex-col items-center justify-center p-2 rounded cursor-pointer w-24 text-center group" onclick="openWindow('app-game')">
+            <div class="w-12 h-12 flex items-center justify-center border-2 border-[var(--main-color)] bg-[var(--dark-color)] mb-1 group-hover:bg-[var(--main-color)] group-hover:text-[var(--dark-color)] transition-colors">
+                <i class="fa-solid fa-gamepad text-2xl"></i>
+            </div>
+            <span class="text-lg leading-tight retro-glow bg-[var(--dark-color)] px-1">SpaceDefend</span>
+        </div>
+
+        <div class="desktop-icon flex flex-col items-center justify-center p-2 rounded cursor-pointer w-24 text-center group" onclick="openWindow('app-sysinfo')">
+            <div class="w-12 h-12 flex items-center justify-center border-2 border-[var(--main-color)] bg-[var(--dark-color)] mb-1 group-hover:bg-[var(--main-color)] group-hover:text-[var(--dark-color)] transition-colors">
+                <i class="fa-solid fa-microchip text-2xl"></i>
+            </div>
+            <span class="text-lg leading-tight retro-glow bg-[var(--dark-color)] px-1">SysControl</span>
+        </div>
+
+    </div>
+
+    <!-- WINDOW CONTAINERS -->
+    <div id="windows-layer" class="absolute inset-0 pointer-events-none z-[60] overflow-hidden">
+
+        <!-- APP 1: SynthWriter (Text Editor) -->
+        <div id="app-synthwriter" class="retro-window pointer-events-auto hidden" style="width: 520px; height: 380px; top: 40px; left: 80px;" onmousedown="bringToFront(this)">
+            <div class="window-header" onmousedown="startDrag(event, 'app-synthwriter')">
+                <span><i class="fa-solid fa-file-lines mr-1"></i> SynthWriter v1.0</span>
+                <div>
+                    <button class="win-btn" onclick="minimizeWindow('app-synthwriter')">_</button>
+                    <button class="win-btn" onclick="maximizeWindow('app-synthwriter')">☐</button>
+                    <button class="win-btn" onclick="closeWindow('app-synthwriter')">X</button>
+                </div>
+            </div>
+            <div class="p-2 flex flex-col flex-1 bg-[var(--bg-color)]">
+                <div class="flex gap-2 mb-2 pb-2 border-b border-[var(--dim-color)] text-sm">
+                    <button class="px-2 py-0.5" onclick="editorNewDoc()">New</button>
+                    <button class="px-2 py-0.5" onclick="editorLoadSample()">Load Sample</button>
+                    <button class="px-2 py-0.5" onclick="editorSaveFile()">Save File</button>
+                    <span class="ml-auto text-xs self-center" id="editor-stats">Words: 0 | Chars: 0</span>
+                </div>
+                <textarea id="editor-textarea" class="w-full flex-1 p-2 border border-[var(--dim-color)] resize-none font-mono-tech focus:border-[var(--main-color)]" placeholder="Type your text here..." oninput="updateEditorStats()"></textarea>
+            </div>
+        </div>
+
+        <!-- APP 2: Pixel Painter -->
+        <div id="app-painter" class="retro-window pointer-events-auto hidden" style="width: 500px; height: 420px; top: 60px; left: 160px;" onmousedown="bringToFront(this)">
+            <div class="window-header" onmousedown="startDrag(event, 'app-painter')">
+                <span><i class="fa-solid fa-palette mr-1"></i> Pixel Paint 8-Bit</span>
+                <div>
+                    <button class="win-btn" onclick="minimizeWindow('app-painter')">_</button>
+                    <button class="win-btn" onclick="maximizeWindow('app-painter')">☐</button>
+                    <button class="win-btn" onclick="closeWindow('app-painter')">X</button>
+                </div>
+            </div>
+            <div class="p-2 flex flex-col flex-1 bg-[var(--bg-color)] items-center">
+                <div class="flex items-center gap-2 mb-2 w-full justify-between border-b border-[var(--dim-color)] pb-2 text-sm">
+                    <div class="flex items-center gap-1">
+                        <label>Tool:</label>
+                        <button id="paint-tool-pencil" class="px-2 py-0.5 border border-[var(--main-color)] bg-[var(--main-color)] text-[var(--dark-color)]" onclick="setPaintTool('pencil')">Pen</button>
+                        <button id="paint-tool-bucket" class="px-2 py-0.5 border border-[var(--main-color)]" onclick="setPaintTool('bucket')">Fill</button>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <label>Color:</label>
+                        <input type="color" id="paint-color-picker" value="#33ff33" class="w-6 h-6 border-0 p-0 cursor-pointer bg-transparent">
+                    </div>
+                    <button class="px-2 py-0.5" onclick="clearCanvas()">Clear</button>
+                    <button class="px-2 py-0.5" onclick="exportCanvas()">Export</button>
+                </div>
+                <div class="flex-1 flex items-center justify-center w-full overflow-auto">
+                    <canvas id="pixel-canvas" width="32" height="32" class="border border-[var(--main-color)] bg-black" style="width: 286px; height: 286px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- APP 3: Retro Calculator -->
+        <div id="app-calc" class="retro-window pointer-events-auto hidden" style="width: 300px; height: 380px; top: 100px; left: 240px;" onmousedown="bringToFront(this)">
+            <div class="window-header" onmousedown="startDrag(event, 'app-calc')">
+                <span><i class="fa-solid fa-calculator mr-1"></i> RetroCalc</span>
+                <div>
+                    <button class="win-btn" onclick="minimizeWindow('app-calc')">_</button>
+                    <button class="win-btn" onclick="closeWindow('app-calc')">X</button>
+                </div>
+            </div>
+            <div class="p-3 flex flex-col flex-1 bg-[var(--bg-color)] justify-between">
+                <div class="border-2 border-[var(--main-color)] p-2 mb-3 text-right bg-black">
+                    <div id="calc-history" class="text-xs opacity-60 h-4"></div>
+                    <div id="calc-display" class="text-2xl font-mono-tech tracking-wider overflow-hidden">0</div>
+                </div>
+                <div class="grid grid-cols-4 gap-2 text-xl flex-1">
+                    <button onclick="calcInput('C')" class="col-span-2 text-red-400">C</button>
+                    <button onclick="calcInput('DEL')">DEL</button>
+                    <button onclick="calcInput('/')">/</button>
+
+                    <button onclick="calcInput('7')">7</button>
+                    <button onclick="calcInput('8')">8</button>
+                    <button onclick="calcInput('9')">9</button>
+                    <button onclick="calcInput('*')">*</button>
+
+                    <button onclick="calcInput('4')">4</button>
+                    <button onclick="calcInput('5')">5</button>
+                    <button onclick="calcInput('6')">6</button>
+                    <button onclick="calcInput('-')">-</button>
+
+                    <button onclick="calcInput('1')">1</button>
+                    <button onclick="calcInput('2')">2</button>
+                    <button onclick="calcInput('3')">3</button>
+                    <button onclick="calcInput('+')">+</button>
+
+                    <button onclick="calcInput('0')" class="col-span-2">0</button>
+                    <button onclick="calcInput('.')">.</button>
+                    <button onclick="calcInput('=')" class="bg-[var(--main-color)] text-[var(--dark-color)]">=</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- APP 4: SynthTunes Audio Player -->
+        <div id="app-tunes" class="retro-window pointer-events-auto hidden" style="width: 440px; height: 320px; top: 120px; left: 300px;" onmousedown="bringToFront(this)">
+            <div class="window-header" onmousedown="startDrag(event, 'app-tunes')">
+                <span><i class="fa-solid fa-music mr-1"></i> SynthTunes 8-Bit Synthesizer</span>
+                <div>
+                    <button class="win-btn" onclick="minimizeWindow('app-tunes')">_</button>
+                    <button class="win-btn" onclick="closeWindow('app-tunes')">X</button>
+                </div>
+            </div>
+            <div class="p-3 flex flex-col flex-1 bg-[var(--bg-color)] justify-between text-sm">
+                <div class="border border-[var(--main-color)] p-3 bg-black flex flex-col gap-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs">STATUS: <span id="synth-status" class="retro-glow">STOPPED</span></span>
+                        <span class="text-xs" id="synth-track-title">TRACK: Cyber Arp '84</span>
+                    </div>
+                    <!-- Visualizer Canvas -->
+                    <canvas id="synth-vis" class="w-full h-12 bg-[var(--dark-color)] border border-[var(--dim-color)]"></canvas>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 my-2">
+                    <div class="flex flex-col gap-1">
+                        <label>Waveform:</label>
+                        <select id="synth-wave" class="p-1 text-sm" onchange="updateSynthWave()">
+                            <option value="square">Square Wave (Classic)</option>
+                            <option value="sawtooth">Sawtooth (Lead)</option>
+                            <option value="triangle">Triangle (Bass)</option>
+                            <option value="sine">Sine (Soft)</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label>Preset Melody:</label>
+                        <select id="synth-preset" class="p-1 text-sm" onchange="changeSynthPreset()">
+                            <option value="0">Chrono Arpeggio</option>
+                            <option value="1">Neon Cyber Run</option>
+                            <option value="2">Dungeon Quest</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs mb-1">Tempo (BPM): <span id="bpm-val">120</span></label>
+                        <input type="range" id="synth-bpm" min="60" max="220" value="120" class="w-full" oninput="document.getElementById('bpm-val').innerText=this.value">
+                    </div>
+                    <div>
+                        <label class="block text-xs mb-1">Pitch Offset: <span id="pitch-val">0</span></label>
+                        <input type="range" id="synth-pitch" min="-12" max="12" value="0" class="w-full" oninput="document.getElementById('pitch-val').innerText=this.value">
+                    </div>
+                </div>
+
+                <div class="flex gap-2 mt-3">
+                    <button class="flex-1 py-1 text-lg font-bold" onclick="toggleSynthPlay()" id="synth-play-btn"><i class="fa-solid fa-play mr-1"></i> PLAY</button>
+                    <button class="flex-1 py-1 text-lg" onclick="triggerSynthFx()"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Sound FX</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- APP 5: Space Defender Game -->
+        <div id="app-game" class="retro-window pointer-events-auto hidden" style="width: 460px; height: 440px; top: 50px; left: 360px;" onmousedown="bringToFront(this)">
+            <div class="window-header" onmousedown="startDrag(event, 'app-game')">
+                <span><i class="fa-solid fa-gamepad mr-1"></i> Space Defender 1984</span>
+                <div>
+                    <button class="win-btn" onclick="minimizeWindow('app-game')">_</button>
+                    <button class="win-btn" onclick="closeWindow('app-game')">X</button>
+                </div>
+            </div>
+            <div class="p-2 flex flex-col flex-1 bg-[var(--bg-color)] items-center">
+                <div class="flex justify-between w-full px-2 py-1 text-sm border-b border-[var(--dim-color)] mb-2">
+                    <span>SCORE: <span id="game-score">0000</span></span>
+                    <span>LIVES: <span id="game-lives">♥♥♥</span></span>
+                    <span>HIGH: <span id="game-high">0000</span></span>
+                </div>
+                <div class="relative flex-1 w-full flex items-center justify-center">
+                    <canvas id="game-canvas" width="400" height="300" class="border border-[var(--main-color)] bg-black"></canvas>
+                    <div id="game-overlay-start" class="absolute inset-0 bg-black/80 flex flex-col items-center justify-center gap-3">
+                        <h2 class="text-2xl font-bold retro-glow">SPACE DEFENDER</h2>
+                        <p class="text-xs text-center px-4">Controls: Left/Right Arrows or A/D to Move<br>SPACE to Shoot</p>
+                        <button class="px-4 py-1 text-lg font-bold" onclick="startGame()">START GAME</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- APP 6: System Control & Settings -->
+        <div id="app-sysinfo" class="retro-window pointer-events-auto hidden" style="width: 480px; height: 420px; top: 90px; left: 180px;" onmousedown="bringToFront(this)">
+            <div class="window-header" onmousedown="startDrag(event, 'app-sysinfo')">
+                <span><i class="fa-solid fa-microchip mr-1"></i> SysControl Panel</span>
+                <div>
+                    <button class="win-btn" onclick="minimizeWindow('app-sysinfo')">_</button>
+                    <button class="win-btn" onclick="closeWindow('app-sysinfo')">X</button>
+                </div>
+            </div>
+            <div class="p-3 flex flex-col flex-1 bg-[var(--bg-color)] gap-3 text-sm overflow-y-auto">
+                
+                <!-- System Performance Telemetry -->
+                <fieldset class="border border-[var(--main-color)] p-2">
+                    <legend class="px-1 text-xs">SYSTEM METRICS</legend>
+                    <div class="flex flex-col gap-2">
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span>CPU USAGE (MOS 6502 @ 1.02 MHz)</span>
+                                <span id="cpu-load-val">24%</span>
+                            </div>
+                            <div class="w-full bg-[var(--dark-color)] border border-[var(--dim-color)] h-3">
+                                <div id="cpu-bar" class="bg-[var(--main-color)] h-full" style="width: 24%;"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span>RAM USAGE (64 KB TOTAL)</span>
+                                <span id="ram-load-val">42 KB / 64 KB</span>
+                            </div>
+                            <div class="w-full bg-[var(--dark-color)] border border-[var(--dim-color)] h-3">
+                                <div id="ram-bar" class="bg-[var(--main-color)] h-full" style="width: 65%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <!-- Color Matrix Themes -->
+                <fieldset class="border border-[var(--main-color)] p-2">
+                    <legend class="px-1 text-xs">MONITOR COLOR MATRIX</legend>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button class="py-1 text-center" onclick="setTheme('green')">Phosphor Green</button>
+                        <button class="py-1 text-center" onclick="setTheme('amber')">Amber Glow</button>
+                        <button class="py-1 text-center" onclick="setTheme('cyan')">Cyber Cyan</button>
+                        <button class="py-1 text-center" onclick="setTheme('bw')">Mono Chrome</button>
+                    </div>
+                </fieldset>
+
+                <!-- CRT Monitor Controls -->
+                <fieldset class="border border-[var(--main-color)] p-2">
+                    <legend class="px-1 text-xs">CRT MONITOR HARDWARE TWEAKS</legend>
+                    <div class="flex flex-col gap-2">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="toggle-scanlines" checked onchange="toggleCRTScanlines()">
+                            <span>Enable Scanlines Effect</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="toggle-flicker" checked onchange="toggleCRTFlicker()">
+                            <span>Enable CRT Screen Flicker</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="toggle-audio-fx" checked onchange="toggleAudioFX()">
+                            <span>Tactile Key/Button Beep Audio</span>
+                        </label>
+                    </div>
+                </fieldset>
+
+                <!-- Virtual Drive Explorer -->
+                <fieldset class="border border-[var(--main-color)] p-2">
+                    <legend class="px-1 text-xs">DISK DRIVE (A:)</legend>
+                    <div class="text-xs font-mono-tech flex flex-col gap-1">
+                        <div>> SYSTEM.SYS ...... 4KB</div>
+                        <div>> SYNTH_W.EXE ..... 12KB</div>
+                        <div>> PAINT8.EXE ...... 16KB</div>
+                        <div>> DEFENDER.EXE .... 20KB</div>
+                        <div class="text-[var(--dim-color)]">3 FILES, 12KB FREE</div>
+                    </div>
+                </fieldset>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- BOTTOM TASKBAR / SYSTEM BAR -->
+    <div class="h-10 bg-[var(--dark-color)] border-t-2 border-[var(--main-color)] flex items-center justify-between px-2 z-40 select-none">
+        
+        <div class="flex items-center gap-2">
+            <!-- Start / System Menu Button -->
+            <button id="start-btn" class="px-3 py-1 font-bold text-lg flex items-center gap-2 border-2 border-[var(--main-color)]" onclick="toggleStartMenu()">
+                <i class="fa-solid fa-terminal"></i> RetroOS
+            </button>
+
+            <!-- Taskbar Open Applications -->
+            <div id="taskbar-apps" class="flex gap-1 overflow-x-auto">
+                <!-- Dynamically populated buttons -->
+            </div>
+        </div>
+
+        <!-- System Clock & Status -->
+        <div class="flex items-center gap-3 text-sm font-mono-tech">
+            <span id="audio-indicator" class="text-xs hidden md:inline"><i class="fa-solid fa-volume-high"></i> AUDIO ON</span>
+            <div class="border border-[var(--main-color)] px-2 py-0.5 bg-black" id="clock-display">
+                00:00:00 AM
+            </div>
+        </div>
+
+    </div>
+
+    <!-- RETRO START MENU POPUP -->
+    <div id="start-menu" class="absolute bottom-12 left-2 w-64 bg-[var(--glass-bg)] border-2 border-[var(--main-color)] z-50 hidden flex-col shadow-2xl">
+        <div class="bg-[var(--main-color)] color-[var(--dark-color)] text-[var(--dark-color)] p-2 font-bold flex justify-between items-center">
+            <span>RetroOS 1984 v3.2</span>
+            <i class="fa-solid fa-desktop"></i>
+        </div>
+        <div class="flex flex-col p-1 text-left">
+            <button class="p-2 text-left flex items-center gap-3 hover:bg-[var(--main-color)] hover:text-[var(--dark-color)] border-0" onclick="openWindow('app-synthwriter'); toggleStartMenu();">
+                <i class="fa-solid fa-file-lines w-5 text-center"></i> SynthWriter Text
+            </button>
+            <button class="p-2 text-left flex items-center gap-3 hover:bg-[var(--main-color)] hover:text-[var(--dark-color)] border-0" onclick="openWindow('app-painter'); toggleStartMenu();">
+                <i class="fa-solid fa-palette w-5 text-center"></i> Pixel Paint
+            </button>
+            <button class="p-2 text-left flex items-center gap-3 hover:bg-[var(--main-color)] hover:text-[var(--dark-color)] border-0" onclick="openWindow('app-calc'); toggleStartMenu();">
+                <i class="fa-solid fa-calculator w-5 text-center"></i> Retro Calculator
+            </button>
+            <button class="p-2 text-left flex items-center gap-3 hover:bg-[var(--main-color)] hover:text-[var(--dark-color)] border-0" onclick="openWindow('app-tunes'); toggleStartMenu();">
+                <i class="fa-solid fa-music w-5 text-center"></i> SynthTunes 8-Bit
+            </button>
+            <button class="p-2 text-left flex items-center gap-3 hover:bg-[var(--main-color)] hover:text-[var(--dark-color)] border-0" onclick="openWindow('app-game'); toggleStartMenu();">
+                <i class="fa-solid fa-gamepad w-5 text-center"></i> Space Defender
+            </button>
+            <button class="p-2 text-left flex items-center gap-3 hover:bg-[var(--main-color)] hover:text-[var(--dark-color)] border-0" onclick="openWindow('app-sysinfo'); toggleStartMenu();">
+                <i class="fa-solid fa-microchip w-5 text-center"></i> SysControl Panel
+            </button>
+            <div class="my-1 border-t border-[var(--dim-color)]"></div>
+            <button class="p-2 text-left flex items-center gap-3 hover:bg-red-900 border-0" onclick="rebootSystem()">
+                <i class="fa-solid fa-power-off w-5 text-center"></i> Reboot OS
+            </button>
+        </div>
+    </div>
+
+    <!-- SYSTEM AUDIO & SCRIPT LOGIC -->
+    <script>
+        /* ------------------------------------------------------------------
+           1. WEB AUDIO SOUND EFFECTS SYSTEM
+           ------------------------------------------------------------------ */
+        let audioCtx = null;
+        let audioEnabled = true;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playRetroSound(type) {
+            if (!audioEnabled) return;
+            try {
+                initAudio();
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'click') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(800, now);
+                    osc.frequency.exponentialRampToValueAtTime(200, now + 0.03);
+                    gain.gain.setValueAtTime(0.05, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.03);
+                    osc.start(now);
+                    osc.stop(now + 0.03);
+                } else if (type === 'open') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(300, now);
+                    osc.frequency.exponentialRampToValueAtTime(600, now + 0.08);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'beep') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(1200, now);
+                    gain.gain.setValueAtTime(0.05, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.05);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                } else if (type === 'laser') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(900, now);
+                    osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                } else if (type === 'explosion') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(150, now);
+                    osc.frequency.linearRampToValueAtTime(40, now + 0.2);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                }
+            } catch (e) {
+                console.warn('Audio play failed', e);
+            }
+        }
+
+        // Global UI Click Audio trigger
+        document.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON' || e.target.closest('button') || e.target.classList.contains('desktop-icon')) {
+                playRetroSound('click');
+            }
+        });
+
+        /* ------------------------------------------------------------------
+           2. WINDOW MANAGEMENT & DRAGGING SYSTEM
+           ------------------------------------------------------------------ */
+        let zIndexCounter = 1000;
+        let activeDragWin = null;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+
+        function openWindow(id) {
+            const win = document.getElementById(id);
+            if (!win) return;
+            win.classList.remove('hidden');
+            bringToFront(win);
+            updateTaskbar();
+            playRetroSound('open');
+        }
+
+        function closeWindow(id) {
+            const win = document.getElementById(id);
+            if (!win) return;
+            win.classList.add('hidden');
+            updateTaskbar();
+            playRetroSound('beep');
+        }
+
+        function minimizeWindow(id) {
+            const win = document.getElementById(id);
+            if (!win) return;
+            win.classList.add('hidden');
+            updateTaskbar();
+            playRetroSound('beep');
+        }
+
+        function maximizeWindow(id) {
+            const win = document.getElementById(id);
+            if (!win) return;
+            if (win.dataset.maximized === 'true') {
+                win.style.top = win.dataset.prevTop || '50px';
+                win.style.left = win.dataset.prevLeft || '50px';
+                win.style.width = win.dataset.prevWidth || '400px';
+                win.style.height = win.dataset.prevHeight || '300px';
+                win.dataset.maximized = 'false';
+            } else {
+                win.dataset.prevTop = win.style.top;
+                win.dataset.prevLeft = win.style.left;
+                win.dataset.prevWidth = win.style.width;
+                win.dataset.prevHeight = win.style.height;
+
+                win.style.top = '0px';
+                win.style.left = '0px';
+                win.style.width = '100%';
+                win.style.height = 'calc(100% - 40px)';
+                win.dataset.maximized = 'true';
+            }
+        }
+
+        function bringToFront(winElement) {
+            zIndexCounter++;
+            winElement.style.zIndex = zIndexCounter;
+            winElement.style.backgroundColor =
+                getComputedStyle(document.body).getPropertyValue('--bg-color').trim() || '#051405';
+            winElement.style.borderColor =
+                getComputedStyle(document.body).getPropertyValue('--main-color').trim() || '#33ff33';
+        }
+
+        function startDrag(e, windowId) {
+            activeDragWin = document.getElementById(windowId);
+            bringToFront(activeDragWin);
+            const rect = activeDragWin.getBoundingClientRect();
+            dragOffsetX = e.clientX - rect.left;
+            dragOffsetY = e.clientY - rect.top;
+
+            document.addEventListener('mousemove', onDrag);
+            document.addEventListener('mouseup', stopDrag);
+        }
+
+        function onDrag(e) {
+            if (!activeDragWin) return;
+            let newX = e.clientX - dragOffsetX;
+            let newY = e.clientY - dragOffsetY;
+
+            // Boundaries
+            if (newY < 0) newY = 0;
+            if (newX < 0) newX = 0;
+
+            activeDragWin.style.left = `${newX}px`;
+            activeDragWin.style.top = `${newY}px`;
+        }
+
+        function stopDrag() {
+            activeDragWin = null;
+            document.removeEventListener('mousemove', onDrag);
+            document.removeEventListener('mouseup', stopDrag);
+        }
+
+        function updateTaskbar() {
+            const taskbarApps = document.getElementById('taskbar-apps');
+            taskbarApps.innerHTML = '';
+
+            const windows = document.querySelectorAll('.retro-window');
+            windows.forEach(win => {
+                const title = win.querySelector('.window-header span').innerText.trim();
+                const isVisible = !win.classList.contains('hidden');
+
+                const btn = document.createElement('button');
+                btn.className = `px-2 py-0.5 text-xs truncate max-w-[120px] ${isVisible ? 'bg-[var(--main-color)] text-[var(--dark-color)] font-bold' : 'opacity-70'}`;
+                btn.innerText = title;
+                btn.onclick = () => {
+                    if (isVisible) {
+                        minimizeWindow(win.id);
+                    } else {
+                        openWindow(win.id);
+                    }
+                };
+                taskbarApps.appendChild(btn);
+            });
+        }
+
+        function toggleStartMenu() {
+            const menu = document.getElementById('start-menu');
+            menu.classList.toggle('hidden');
+            menu.classList.toggle('flex');
+        }
+
+        /* ------------------------------------------------------------------
+           3. CLOCK & SYSTEM TELEMETRY SIMULATION
+           ------------------------------------------------------------------ */
+        function updateClock() {
+            const now = new Date();
+            const clockEl = document.getElementById('clock-display');
+            clockEl.innerText = now.toLocaleTimeString();
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        function simulateTelemetry() {
+            const cpuVal = Math.floor(Math.random() * 45) + 15;
+            const ramVal = Math.floor(Math.random() * 8) + 38;
+
+            document.getElementById('cpu-load-val').innerText = `${cpuVal}%`;
+            document.getElementById('cpu-bar').style.width = `${cpuVal}%`;
+
+            document.getElementById('ram-load-val').innerText = `${ramVal} KB / 64 KB`;
+            document.getElementById('ram-bar').style.width = `${(ramVal/64)*100}%`;
+        }
+        setInterval(simulateTelemetry, 2500);
+
+        function setTheme(themeName) {
+            document.body.setAttribute('data-theme', themeName);
+            playRetroSound('beep');
+        }
+
+        function toggleCRTScanlines() {
+            const crt = document.getElementById('crt-overlay');
+            crt.classList.toggle('crt-scanlines');
+        }
+
+        function toggleCRTFlicker() {
+            const crt = document.getElementById('crt-overlay');
+            crt.classList.toggle('crt-flicker-active');
+        }
+
+        function toggleAudioFX() {
+            audioEnabled = document.getElementById('toggle-audio-fx').checked;
+            document.getElementById('audio-indicator').style.display = audioEnabled ? 'inline' : 'none';
+        }
+
+        function rebootSystem() {
+            document.body.style.opacity = 0;
+            setTimeout(() => {
+                location.reload();
+            }, 800);
+        }
+
+        /* ------------------------------------------------------------------
+           4. APP 1: SYNTHWRITER TEXT EDITOR
+           ------------------------------------------------------------------ */
+        function updateEditorStats() {
+            const text = document.getElementById('editor-textarea').value;
+            const chars = text.length;
+            const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+            document.getElementById('editor-stats').innerText = `Words: ${words} | Chars: ${chars}`;
+        }
+
+        function editorNewDoc() {
+            document.getElementById('editor-textarea').value = '';
+            updateEditorStats();
+        }
+
+        function editorLoadSample() {
+            document.getElementById('editor-textarea').value = 
+`=== RETRO OS 1984 SYSTEM MANIFEST ===
+
+Welcome to ChronoOS Workstation Edition.
+Designed for precision computing, synthesized digital sound, and 8-bit visual layout creation.
+
+Features:
+- Built-in Synth tunes synthesizer via Web Audio API.
+- Pixel Paint graphics workstation.
+- Scientific Retro Calculator.
+- Real-time hardware telemetry display.
+
+System Ready.`;
+            updateEditorStats();
+        }
+
+        function editorSaveFile() {
+            const text = document.getElementById('editor-textarea').value;
+            const blob = new Blob([text], { type: 'text/plain' });
+            const anchor = document.createElement('a');
+            anchor.download = 'document.txt';
+            anchor.href = window.URL.createObjectURL(blob);
+            anchor.click();
+        }
+
+        /* ------------------------------------------------------------------
+           5. APP 2: PIXEL PAINTER
+           ------------------------------------------------------------------ */
+        const canvas = document.getElementById('pixel-canvas');
+        const ctx = canvas.getContext('2d');
+        let currentTool = 'pencil';
+        let isDrawing = false;
+
+        // Initialize Canvas with black background
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, 32, 32);
+
+        function setPaintTool(tool) {
+            currentTool = tool;
+            document.getElementById('paint-tool-pencil').classList.toggle('bg-[var(--main-color)]', tool === 'pencil');
+            document.getElementById('paint-tool-pencil').classList.toggle('text-[var(--dark-color)]', tool === 'pencil');
+            document.getElementById('paint-tool-bucket').classList.toggle('bg-[var(--main-color)]', tool === 'bucket');
+            document.getElementById('paint-tool-bucket').classList.toggle('text-[var(--dark-color)]', tool === 'bucket');
+        }
+
+        function drawPixel(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+
+            const x = Math.floor((e.clientX - rect.left) * scaleX);
+            const y = Math.floor((e.clientY - rect.top) * scaleY);
+
+            const color = document.getElementById('paint-color-picker').value;
+
+            if (currentTool === 'pencil') {
+                ctx.fillStyle = color;
+                ctx.fillRect(x, y, 1, 1);
+            } else if (currentTool === 'bucket') {
+                ctx.fillStyle = color;
+                ctx.fillRect(0, 0, 32, 32);
+            }
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            drawPixel(e);
+        });
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDrawing) drawPixel(e);
+        });
+        document.addEventListener('mouseup', () => isDrawing = false);
+
+        function clearCanvas() {
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, 32, 32);
+        }
+
+        function exportCanvas() {
+            const link = document.createElement('a');
+            link.download = 'pixel-art.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        /* ------------------------------------------------------------------
+           6. APP 3: RETRO CALCULATOR LOGIC
+           ------------------------------------------------------------------ */
+        let calcExpr = '';
+
+        function calcInput(val) {
+            const display = document.getElementById('calc-display');
+            const history = document.getElementById('calc-history');
+
+            if (val === 'C') {
+                calcExpr = '';
+                display.innerText = '0';
+                history.innerText = '';
+            } else if (val === 'DEL') {
+                calcExpr = calcExpr.slice(0, -1);
+                display.innerText = calcExpr || '0';
+            } else if (val === '=') {
+                try {
+                    history.innerText = calcExpr;
+                    // Safe evaluation for basic math
+                    const result = eval(calcExpr.replace(/[^0-9+\-*/.]/g, ''));
+                    display.innerText = result;
+                    calcExpr = result.toString();
+                } catch {
+                    display.innerText = 'ERROR';
+                    calcExpr = '';
+                }
+            } else {
+                if (display.innerText === '0' && !isNaN(val)) {
+                    calcExpr = val;
+                } else {
+                    calcExpr += val;
+                }
+                display.innerText = calcExpr;
+            }
+        }
+
+        /* ------------------------------------------------------------------
+           7. APP 4: SYNTH TUNES AUDIO PLAYER
+           ------------------------------------------------------------------ */
+        let synthPlaying = false;
+        let synthInterval = null;
+        let currentStep = 0;
+
+        const presets = [
+            // Track 1: Chrono Arp
+            [261.63, 329.63, 392.00, 523.25, 392.00, 329.63, 293.66, 349.23],
+            // Track 2: Neon Cyber Run
+            [440.00, 440.00, 554.37, 659.25, 554.37, 440.00, 392.00, 493.88],
+            // Track 3: Dungeon Quest
+            [164.81, 196.00, 220.00, 196.00, 164.81, 146.83, 164.81, 130.81]
+        ];
+
+        function toggleSynthPlay() {
+            synthPlaying = !synthPlaying;
+            const btn = document.getElementById('synth-play-btn');
+            const status = document.getElementById('synth-status');
+
+            if (synthPlaying) {
+                initAudio();
+                btn.innerHTML = '<i class="fa-solid fa-stop mr-1"></i> STOP';
+                status.innerText = 'PLAYING...';
+                startSynthLoop();
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-play mr-1"></i> PLAY';
+                status.innerText = 'STOPPED';
+                clearInterval(synthInterval);
+            }
+        }
+
+        function startSynthLoop() {
+            clearInterval(synthInterval);
+            const bpm = parseInt(document.getElementById('synth-bpm').value, 10);
+            const intervalMs = (60 / bpm) * 250;
+
+            synthInterval = setInterval(() => {
+                playSynthNote();
+                drawSynthVisualizer();
+            }, intervalMs);
+        }
+
+        function playSynthNote() {
+            if (!audioCtx || !synthPlaying) return;
+
+            const presetIdx = parseInt(document.getElementById('synth-preset').value, 10);
+            const notes = presets[presetIdx];
+            const pitchShift = parseInt(document.getElementById('synth-pitch').value, 10);
+            
+            let freq = notes[currentStep % notes.length];
+            freq = freq * Math.pow(2, pitchShift / 12);
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.type = document.getElementById('synth-wave').value;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+            gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.2);
+
+            currentStep++;
+        }
+
+        function changeSynthPreset() {
+            currentStep = 0;
+            const titles = ["Cyber Arp '84", "Neon Cyber Run", "Dungeon Quest"];
+            const idx = document.getElementById('synth-preset').value;
+            document.getElementById('synth-track-title').innerText = `TRACK: ${titles[idx]}`;
+        }
+
+        function updateSynthWave() {}
+
+        function triggerSynthFx() {
+            playRetroSound('laser');
+        }
+
+        function drawSynthVisualizer() {
+            const visCanvas = document.getElementById('synth-vis');
+            const vctx = visCanvas.getContext('2d');
+            const w = visCanvas.width;
+            const h = visCanvas.height;
+
+            vctx.fillStyle = '#000000';
+            vctx.fillRect(0, 0, w, h);
+
+            vctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--main-color').trim() || '#33ff33';
+            vctx.lineWidth = 2;
+            vctx.beginPath();
+
+            const sliceWidth = w / 16;
+            let x = 0;
+
+            for (let i = 0; i < 16; i++) {
+                const y = (Math.sin(i + currentStep) * (h / 3)) + (h / 2);
+                if (i === 0) vctx.moveTo(x, y);
+                else vctx.lineTo(x, y);
+                x += sliceWidth;
+            }
+            vctx.stroke();
+        }
+
+        /* ------------------------------------------------------------------
+           8. APP 5: SPACE DEFENDER RETRO MINI GAME
+           ------------------------------------------------------------------ */
+        const gCanvas = document.getElementById('game-canvas');
+        const gctx = gCanvas.getContext('2d');
+
+        let gameState = 'STOPPED';
+        let player = { x: 180, y: 260, w: 20, h: 12, speed: 4 };
+        let bullets = [];
+        let enemies = [];
+        let gameScore = 0;
+        let gameLives = 3;
+        let keys = {};
+
+        document.addEventListener('keydown', (e) => keys[e.key] = true);
+        document.addEventListener('keyup', (e) => keys[e.key] = false);
+
+        function startGame() {
+            document.getElementById('game-overlay-start').classList.add('hidden');
+            gameState = 'RUNNING';
+            gameScore = 0;
+            gameLives = 3;
+            bullets = [];
+            enemies = [];
+            spawnEnemies();
+            updateGameUI();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function spawnEnemies() {
+            enemies = [];
+            for (let row = 0; row < 3; row++) {
+                for (let col = 0; col < 7; col++) {
+                    enemies.push({
+                        x: 40 + col * 45,
+                        y: 30 + row * 25,
+                        w: 18,
+                        h: 14,
+                        alive: true
+                    });
+                }
+            }
+        }
+
+        let enemyDirection = 1;
+        let enemyStepTimer = 0;
+
+        function updateGame() {
+            if (gameState !== 'RUNNING') return;
+
+            // Player Movement
+            if ((keys['ArrowLeft'] || keys['a']) && player.x > 0) player.x -= player.speed;
+            if ((keys['ArrowRight'] || keys['d']) && player.x < gCanvas.width - player.w) player.x += player.speed;
+
+            // Shooting
+            if (keys[' '] && !player.lastShot) {
+                bullets.push({ x: player.x + player.w / 2 - 1.5, y: player.y, w: 3, h: 8 });
+                player.lastShot = true;
+                playRetroSound('laser');
+            }
+            if (!keys[' ']) player.lastShot = false;
+
+            // Update Bullets
+            bullets.forEach((b, idx) => {
+                b.y -= 5;
+                if (b.y < 0) bullets.splice(idx, 1);
+            });
+
+            // Enemy Movement & Logic
+            enemyStepTimer++;
+            if (enemyStepTimer > 20) {
+                enemyStepTimer = 0;
+                let hitEdge = false;
+                enemies.forEach(e => {
+                    if (!e.alive) return;
+                    if ((e.x + e.w >= gCanvas.width - 10 && enemyDirection === 1) || (e.x <= 10 && enemyDirection === -1)) {
+                        hitEdge = true;
+                    }
+                });
+
+                if (hitEdge) {
+                    enemyDirection *= -1;
+                    enemies.forEach(e => e.y += 8);
+                } else {
+                    enemies.forEach(e => e.x += enemyDirection * 6);
+                }
+            }
+
+            // Bullet - Enemy Collision
+            bullets.forEach((b, bIdx) => {
+                enemies.forEach(e => {
+                    if (e.alive && b.x < e.x + e.w && b.x + b.w > e.x && b.y < e.y + e.h && b.y + b.h > e.y) {
+                        e.alive = false;
+                        bullets.splice(bIdx, 1);
+                        gameScore += 100;
+                        playRetroSound('explosion');
+                        updateGameUI();
+                    }
+                });
+            });
+
+            // Check Win Condition
+            if (enemies.every(e => !e.alive)) {
+                spawnEnemies();
+            }
+        }
+
+        function renderGame() {
+            const mainColor = getComputedStyle(document.body).getPropertyValue('--main-color').trim() || '#33ff33';
+            gctx.fillStyle = '#000000';
+            gctx.fillRect(0, 0, gCanvas.width, gCanvas.height);
+
+            // Draw Player Ship
+            gctx.fillStyle = mainColor;
+            gctx.fillRect(player.x, player.y, player.w, player.h);
+            gctx.fillRect(player.x + player.w/2 - 2, player.y - 4, 4, 4);
+
+            // Draw Bullets
+            gctx.fillStyle = '#ffffff';
+            bullets.forEach(b => gctx.fillRect(b.x, b.y, b.w, b.h));
+
+            // Draw Enemies
+            gctx.fillStyle = mainColor;
+            enemies.forEach(e => {
+                if (e.alive) {
+                    gctx.fillRect(e.x, e.y, e.w, e.h);
+                    // Alien Eyes
+                    gctx.clearRect(e.x + 3, e.y + 4, 3, 3);
+                    gctx.clearRect(e.x + 12, e.y + 4, 3, 3);
+                }
+            });
+        }
+
+        function updateGameUI() {
+            document.getElementById('game-score').innerText = gameScore.toString().padStart(4, '0');
+            document.getElementById('game-lives').innerText = '♥'.repeat(gameLives);
+        }
+
+        function gameLoop() {
+            if (gameState === 'RUNNING') {
+                updateGame();
+                renderGame();
+                requestAnimationFrame(gameLoop);
+            }
+        }
+
+        /* ------------------------------------------------------------------
+           9. INITIALIZATION & SETUP
+           ------------------------------------------------------------------ */
+        window.onload = function() {
+            // Open default window
+            openWindow('app-synthwriter');
+            editorLoadSample();
+        };
+    </script>
+</body>
+</html>
