@@ -9,7 +9,9 @@
             --bg: #1e1e2f;
             --card-bg: #2a2a40;
             --card-hover: #34344f;
+            --group-bg: #25253a;
             --text: #f0f0f5;
+            --muted-text: #a0a0b8;
             --accent: #7a7aff;
         }
 
@@ -37,37 +39,74 @@
 
         p.subtitle {
             margin: 0 0 40px 0;
-            color: #a0a0b8;
+            color: var(--muted-text);
             font-size: 0.95rem;
         }
 
-        .dashboard-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 24px;
-            justify-content: center;
+        .dashboard {
+            width: 100%;
             max-width: 900px;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 24px;
+        }
+
+        .app-group {
+            min-height: 130px;
+            padding: 18px;
+            background: var(--group-bg);
+            border: 1px solid rgba(122, 122, 255, 0.2);
+            border-radius: 8px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        .group-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0 0 18px 2px;
+            color: var(--text);
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.4px;
+        }
+
+        .group-title::after {
+            content: "";
+            height: 1px;
+            flex: 1;
+            background: rgba(122, 122, 255, 0.3);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
         }
 
         .widget {
             width: 128px;
-            height: 128px;
+            max-width: 100%;
+            min-width: 0;
+            justify-self: center;
+            aspect-ratio: 1;
+            padding: 2px;
             background: var(--card-bg);
-            border-radius: 16px;
+            border-radius: 4px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             text-decoration: none;
             color: var(--text);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
             transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
         }
 
         .widget:hover {
             background: var(--card-hover);
             transform: translateY(-4px);
-            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.45);
         }
 
         .widget:active {
@@ -75,15 +114,15 @@
         }
 
         .widget .icon {
-            font-size: 42px;
+            font-size: 38px;
             line-height: 1;
             margin-bottom: 10px;
         }
 
         .widget .label {
-            font-size: 0.78rem;
+            font-size: 0.76rem;
             text-align: center;
-            padding: 0 6px;
+            padding: 0 4px;
             color: var(--text);
             opacity: 0.9;
         }
@@ -100,42 +139,105 @@
             color: #55566b;
             text-align: center;
         }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 32px 16px;
+            }
+
+            .dashboard {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .app-group {
+                min-height: auto;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+
+            .widget {
+                min-height: 0;
+            }
+
+            .widget .icon {
+                font-size: 32px;
+            }
+
+            .widget .label {
+                font-size: 0.7rem;
+            }
+        }
     </style>
 </head>
 <body>
     <h1>Dashboard</h1>
     <p class="subtitle">Standalone web applications</p>
 
-    <div class="dashboard-grid" id="dashboard">
-        <a class="widget" href="drum-pad-machine/src/index.html" title="Drum Pad Machine">
-            <span class="icon">🥁</span>
-            <span class="label">Drum Pad Machine</span>
-        </a>
-         <a class="widget" href="time-tracker/src/index.html" title="Time Tracker">
-            <span class="icon">🕑</span>
-            <span class="label">Time Tracker</span>
-        </a>
-        <a class="widget" href="finance-planner/src/index.html" title="Finance Planner">
-            <span class="icon">💰</span>
-            <span class="label">Finance Planner</span>
-        </a>
-        <a class="widget" href="parrondo paradox/index.html" title="Parrondo Paradox">
-            <span class="icon">🗠</span>
-            <span class="label">Parrondo Paradox</span>
-        </a>
-        <a class="widget" href="block-cascade/index.html" title="Block Cascade">
-            <span class="icon">🕹️</span>
-            <span class="label">Block Cascade</span>
-        </a>
-        <a class="widget" href="retro-os/index.html" title="RetroOS 1984">
-            <span class="icon">💾</span>
-            <span class="label">RetroOS 1984</span>
-        </a>
-        <a class="widget" href="synthesizer/index.html" title="ByteWave Synthesizer">
-            <span class="icon">🎹</span>
-            <span class="label">ByteWave Synthesizer</span>
-        </a>
-    </div>
+    <main class="dashboard" id="dashboard">
+        <section class="app-group" aria-labelledby="creative-title">
+            <h2 class="group-title" id="creative-title">🎨 Creative Studio</h2>
+            <div class="dashboard-grid">
+                <a class="widget" href="drum-pad-machine/src/index.html" title="Drum Pad Machine">
+                    <span class="icon">🥁</span>
+                    <span class="label">Drum Pad Machine</span>
+                </a>
+                <a class="widget" href="synthesizer/index.html" title="ByteWave Synthesizer">
+                    <span class="icon">🎹</span>
+                    <span class="label">ByteWave Synthesizer</span>
+                </a>
+            </div>
+        </section>
+
+        <section class="app-group" aria-labelledby="productivity-title">
+            <h2 class="group-title" id="productivity-title">📋 Productivity</h2>
+            <div class="dashboard-grid">
+                <a class="widget" href="time-tracker/src/index.html" title="Time Tracker">
+                    <span class="icon">🕑</span>
+                    <span class="label">Time Tracker</span>
+                </a>
+            </div>
+        </section>
+
+        <section class="app-group" aria-labelledby="finance-title">
+            <h2 class="group-title" id="finance-title">📊 Finance & Experiments</h2>
+            <div class="dashboard-grid">
+                <a class="widget" href="finance-planner/src/index.html" title="Finance Planner">
+                    <span class="icon">💰</span>
+                    <span class="label">Finance Planner</span>
+                </a>
+                <a class="widget" href="parrondo paradox/index.html" title="Parrondo Paradox">
+                    <span class="icon">🗠</span>
+                    <span class="label">Parrondo Paradox</span>
+                </a>
+            </div>
+        </section>
+
+        <section class="app-group" aria-labelledby="games-title">
+            <h2 class="group-title" id="games-title">🎮 Games</h2>
+            <div class="dashboard-grid">
+                <a class="widget" href="block-cascade/index.html" title="Block Cascade">
+                    <span class="icon">🕹️</span>
+                    <span class="label">Block Cascade</span>
+                </a>
+            </div>
+        </section>
+
+        <section class="app-group" aria-labelledby="retro-title">
+            <h2 class="group-title" id="retro-title">💾 Retro Computing</h2>
+            <div class="dashboard-grid">
+                <a class="widget" href="retro-os/index.html" title="RetroOS 1984">
+                    <span class="icon">💾</span>
+                    <span class="label">RetroOS 1984</span>
+                </a>
+            </div>
+        </section>
+    </main>
 
     <footer>stafdti.github.io</footer>
     <p class="disclaimer">🤖 These applications were built with the help of AI coding assistants.</p>
