@@ -10,6 +10,7 @@ This repository is a collection of small, browser-based applications generated w
 - [Parrondo Portfolio Lab](#parrondo-portfolio-lab)
 - [RetroOS 1984](#retroos-1984)
 - [Time Tracker](#time-tracker)
+- [ByteWave Synthesizer](#bytewave-synthesizer)
 
 ## Projects
 
@@ -48,3 +49,9 @@ A browser-based retro workstation simulation with draggable application windows,
 A browser-based activity timer for tracking time by topic. It includes a weekly chart, data import/export, local persistence, and installable PWA support.
 
 [Read the Time Tracker README](time-tracker/README.md)
+
+### ByteWave Synthesizer
+
+A retro-styled standalone Web Audio synthesizer with configurable oscillator, filter, envelope, polyphonic keyboard playback, and immediate local patch persistence.
+
+[Open the ByteWave Synthesizer](synthesizer/index.html) · [Read the Synthesizer README](synthesizer/README.md)

@@ -1,0 +1,19 @@
+{
+  "name": "ByteWave Synthesizer",
+  "short_name": "ByteWave",
+  "description": "A retro browser synthesizer with local patch storage.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#10151b",
+  "theme_color": "#10151b",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
