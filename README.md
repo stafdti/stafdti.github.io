@@ -15,11 +15,11 @@ This repository is a collection of small, browser-based applications generated w
 
 ## Projects
 
-### Meteroit
+### Meteroite
 
 A self-contained neon orbital arcade game built with plain HTML, CSS, and JavaScript. Pilot a scout ship, dodge pink debris, collect energy orbs, fire pulse shots, and survive increasingly active waves with browser-generated Web Audio effects.
 
-[Open Meteroit](meteroit/index.html) · [Read the Meteroit README](meteroit/README.md)
+[Open Meteroite](meteroite/index.html) · [Read the Meteroite README](meteroite/README.md)
 
 ### Block Cascade
 
