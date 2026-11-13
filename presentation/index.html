@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI-Generated Mini Apps — Project Showcase</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css">
+
+  <style>
+    :root {
+      --ink: #eef5ff;
+      --muted: #9cadc5;
+      --bg: #07101f;
+      --panel: rgba(17, 31, 55, .78);
+      --line: rgba(164, 192, 230, .22);
+      --cyan: #62e6ff;
+      --violet: #a98bff;
+      --pink: #ff6bb8;
+      --lime: #b7f36b;
+      --orange: #ffb86b;
+    }
+
+    .reveal {
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 84% 7%, rgba(98, 230, 255, .14), transparent 27%),
+        radial-gradient(circle at 8% 90%, rgba(169, 139, 255, .15), transparent 31%),
+        var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 29px;
+    }
+
+    .reveal .slides { text-align: left; }
+    .reveal section { height: 100%; box-sizing: border-box; padding: 28px 45px; }
+    .reveal h1, .reveal h2, .reveal h3 {
+      color: var(--ink);
+      font-weight: 800;
+      letter-spacing: -.04em;
+      text-transform: none;
+    }
+    .reveal h1 { font-size: 2.25em; line-height: .98; max-width: 950px; }
+    .reveal h2 { font-size: 1.55em; margin: 0 0 .35em; }
+    .reveal h3 { font-size: .82em; margin: 0 0 .35em; color: var(--cyan); }
+    .reveal p { color: var(--muted); line-height: 1.35; }
+    .reveal ul { margin: .35em 0; }
+    .reveal li { color: var(--muted); margin: .2em 0; line-height: 1.2; }
+    .reveal strong { color: var(--ink); }
+    .reveal a { color: var(--cyan); }
+    .reveal code {
+      color: var(--lime);
+      background: rgba(0,0,0,.26);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: .08em .3em;
+      font-size: .76em;
+    }
+
+    .eyebrow {
+      color: var(--cyan);
+      font: 700 .42em/1.2 ui-monospace, SFMono-Regular, Consolas, monospace;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      margin-bottom: 1.8em;
+    }
+    .accent { color: var(--cyan); }
+    .pink { color: var(--pink); }
+    .violet { color: var(--violet); }
+    .lime { color: var(--lime); }
+    .orange { color: var(--orange); }
+
+    .hero {
+      display: flex; flex-direction: column; justify-content: center;
+      background:
+        linear-gradient(135deg, transparent 0 65%, rgba(98,230,255,.06) 65% 65.2%, transparent 65.2%),
+        linear-gradient(45deg, transparent 0 75%, rgba(255,107,184,.05) 75% 75.2%, transparent 75.2%);
+    }
+    .hero h1 { max-width: 780px; }
+    .hero .tagline { font-size: .78em; max-width: 720px; margin-top: 1em; }
+    .hero .meta { margin-top: 2.4em; color: var(--muted); font: .4em ui-monospace, monospace; }
+    .grid { display: grid; gap: 14px; }
+    .grid.two { grid-template-columns: 1fr 1fr; }
+    .grid.three { grid-template-columns: repeat(3, 1fr); }
+    .grid.four { grid-template-columns: repeat(4, 1fr); }
+    .card {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 14px;
+      padding: 18px 20px;
+      box-shadow: 0 10px 35px rgba(0,0,0,.12);
+    }
+    .card p { font-size: .56em; margin: .4em 0 0; }
+    .card .icon { font-size: 1.45em; margin-bottom: .2em; }
+    .card h3 { font-size: .62em; }
+    .number {
+      font: 800 1.65em ui-monospace, monospace;
+      color: var(--cyan);
+      line-height: 1;
+    }
+    .label { font-size: .48em; color: var(--muted); margin-top: .35em; }
+    .quote {
+      border-left: 4px solid var(--pink);
+      padding: .2em 0 .2em 1em;
+      font-size: .86em;
+      color: var(--ink);
+      max-width: 900px;
+    }
+    .quote small { display: block; color: var(--muted); font-size: .55em; margin-top: .8em; }
+    .pill {
+      display: inline-block;
+      padding: .35em .7em;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: .45em;
+      margin: .2em .15em;
+    }
+    .flow {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      margin: 1em 0;
+    }
+    .flow span {
+      background: rgba(98,230,255,.1);
+      border: 1px solid rgba(98,230,255,.4);
+      border-radius: 9px;
+      padding: .55em .7em;
+      font-size: .52em;
+      color: var(--ink);
+    }
+    .flow b { color: var(--pink); font-size: .7em; }
+    .matrix { width: 100%; border-collapse: collapse; font-size: .47em; }
+    .matrix th, .matrix td { padding: 9px 10px; border-bottom: 1px solid var(--line); text-align: left; }
+    .matrix th { color: var(--cyan); font-weight: 700; }
+    .matrix td { color: var(--muted); }
+    .matrix td:first-child { color: var(--ink); font-weight: 700; }
+    .small { font-size: .52em; }
+    .source {
+      position: absolute; bottom: 18px; left: 45px;
+      color: rgba(156,173,197,.7); font: .34em ui-monospace, monospace;
+    }
+    .reveal .progress { color: var(--cyan); height: 4px; }
+    .reveal .controls { color: var(--cyan); }
+    .reveal .slide-number { color: var(--muted); background: transparent; font: .4em ui-monospace, monospace; }
+    @media (max-width: 800px) {
+      .reveal { font-size: 23px; }
+      .reveal section { padding: 22px; }
+      .grid.two, .grid.three, .grid.four { grid-template-columns: 1fr 1fr; }
+      .source { left: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <section class="hero">
+        <div class="eyebrow">stafdti.github.io / project showcase</div>
+        <h1>Small apps.<br><span class="accent">Big range.</span></h1>
+        <p class="tagline">A portfolio of browser-native experiments generated with the help of AI — from arcade games and synthesizers to finance dashboards and productivity tools.</p>
+        <p class="meta">9 MINI APPS · 100% STATIC WEB · HTML / CSS / JAVASCRIPT</p>
+      </section>
+
+      <section>
+        <div class="eyebrow">01 / the collection</div>
+        <h2>One repository, <span class="accent">nine interfaces</span></h2>
+        <p>Every project lives in its own folder, includes its own documentation, and can generally run independently as a static web app.</p>
+        <div class="grid three">
+          <div class="card"><div class="icon">◈</div><h3>Play</h3><p>Arcade games, cellular automata, and a retro workstation.</p></div>
+          <div class="card"><div class="icon">◉</div><h3>Create</h3><p>Drum sequencing and a polyphonic Web Audio synthesizer.</p></div>
+          <div class="card"><div class="icon">◌</div><h3>Understand</h3><p>Finance analytics, portfolio backtesting, and time tracking.</p></div>
+        </div>
+        <div style="margin-top:1.1em">
+          <span class="pill">no build step</span><span class="pill">browser APIs</span><span class="pill">local-first</span><span class="pill">responsive</span><span class="pill">installable PWAs</span>
+        </div>
+        <div class="source">Source: repository README.md</div>
+      </section>
+
+      <section>
+        <div class="eyebrow">02 / the map</div>
+        <h2>From pixels to <span class="violet">personal finance</span></h2>
+        <table class="matrix">
+          <thead><tr><th>Project</th><th>Category</th><th>Signature idea</th></tr></thead>
+          <tbody>
+            <tr><td>Meteroite</td><td>Arcade</td><td>Neon orbital survival with generated sound effects</td></tr>
+            <tr><td>Conway’s Game of Life</td><td>Simulation</td><td>Editable 40 × 40 cellular automata board</td></tr>
+            <tr><td>Block Cascade</td><td>Puzzle</td><td>Polyomino stacking with ghost preview and stash</td></tr>
+            <tr><td>Drum Pad Machine</td><td>Music</td><td>16 pads × 16-step sequencer with recording</td></tr>
+            <tr><td>Finance Planner</td><td>Analytics</td><td>CSV exploration, filters, KPIs, charts, and tables</td></tr>
+            <tr><td>Parrondo Portfolio Lab</td><td>Backtesting</td><td>Historical strategy comparison for two assets</td></tr>
+            <tr><td>RetroOS 1984</td><td>Desktop sim</td><td>CRT workstation with a suite of mini applications</td></tr>
+            <tr><td>Time Tracker</td><td>Productivity</td><td>Topic timers, weekly chart, import/export, PWA</td></tr>
+            <tr><td>ByteWave Synthesizer</td><td>Instrument</td><td>Patchable Web Audio synth with offline support</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <div class="eyebrow">03 / games</div>
+        <h2>Designed for <span class="pink">instant play</span></h2>
+        <div class="grid three">
+          <div class="card">
+            <div class="icon pink">✦</div><h3>Meteroite</h3>
+            <p>Pilot a scout ship, dodge pink debris, collect energy orbs, fire pulse shots, and survive increasingly active waves.</p>
+            <p><strong>Controls:</strong> keyboard or touch · Web Audio effects</p>
+          </div>
+          <div class="card">
+            <div class="icon lime">▦</div><h3>Game of Life</h3>
+            <p>Paint cells on a 40 × 40 board, then watch classic patterns evolve with play/pause, stepping, speed, and edge wrapping.</p>
+            <p><strong>Presets:</strong> reusable starting patterns · live population stats</p>
+          </div>
+          <div class="card">
+            <div class="icon orange">◆</div><h3>Block Cascade</h3>
+            <p>Arrange falling polyominoes, clear rows, stash a piece, and chase a saved high score as phases accelerate.</p>
+            <p><strong>Modes:</strong> keyboard + touch · themes · synthesized SFX</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="eyebrow">04 / making sound</div>
+        <h2>Two instruments, two <span class="accent">different workflows</span></h2>
+        <div class="grid two">
+          <div class="card">
+            <div class="icon">▦</div><h3>Drum Pad Machine</h3>
+            <ul class="small">
+              <li>16 pads in a 4 × 4 grid</li>
+              <li>16-track sequencer with 16 steps</li>
+              <li>Configurable 40–300 BPM tempo</li>
+              <li>Playhead, record mode, manual editing</li>
+              <li>Pattern, BPM, and pad assignment persist locally</li>
+            </ul>
+            <p class="small"><strong>Input:</strong> <code>1 2 3 4 / Q W E R / A S D F / Z X C V</code></p>
+          </div>
+          <div class="card">
+            <div class="icon">∿</div><h3>ByteWave Synthesizer</h3>
+            <ul class="small">
+              <li>Oscillator, filter, envelope, and polyphony</li>
+              <li>Live output activity meter and panic button</li>
+              <li>Immediate patch persistence via localStorage</li>
+              <li>Responsive touch-friendly piano keyboard</li>
+              <li>Language-aware QWERTY / QWERTZ mapping</li>
+            </ul>
+            <p class="small"><strong>Audio:</strong> one Web Audio voice graph per active note</p>
+          </div>
+        </div>
+        <p class="quote" style="margin-top:1em">The browser is not just a canvas — it is an instrument.<small>Both projects use native audio capabilities without shipping audio processing frameworks.</small></p>
+      </section>
+
+      <section>
+        <div class="eyebrow">05 / retro computing</div>
+        <h2>RetroOS 1984: a <span class="orange">desktop inside the browser</span></h2>
+        <p>A browser-based retro workstation simulation that turns a single page into a tiny operating environment.</p>
+        <div class="grid four">
+          <div class="card"><h3>Window manager</h3><p>Drag, focus, minimize, and close application windows.</p></div>
+          <div class="card"><h3>Creative tools</h3><p>Text editor, pixel painter, calculator, and synthesizer.</p></div>
+          <div class="card"><h3>Playground</h3><p>Built-in space game with keyboard controls.</p></div>
+          <div class="card"><h3>Atmosphere</h3><p>CRT effects, monitor themes, and synthesized audio.</p></div>
+        </div>
+        <div class="flow">
+          <span>Desktop shell</span><b>→</b><span>Window system</span><b>→</b><span>Mini apps</span><b>→</b><span>System controls</span>
+        </div>
+        <p class="small">The project demonstrates how familiar desktop metaphors can be recreated with DOM layout, CSS effects, and browser input events.</p>
+      </section>
+
+      <section>
+        <div class="eyebrow">06 / financial tools</div>
+        <h2>Making market data <span class="violet">explorable</span></h2>
+        <div class="grid two">
+          <div class="card">
+            <h3>Finance Planner</h3>
+            <p>Load personal finance or brokerage transaction CSVs and turn raw rows into a navigable dashboard.</p>
+            <ul class="small">
+              <li>Flexible CSV parsing and column notes</li>
+              <li>Filters and searchable transaction table</li>
+              <li>Summary metrics and visualizations</li>
+              <li>Charts for categories, merchants, assets, flows, and cumulative performance</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Parrondo Portfolio Lab</h3>
+            <p>Compare strategies using two uploaded historical stock price series.</p>
+            <ul class="small">
+              <li>Regional CSV files and cumulative euro values</li>
+              <li>Periodic 50/50 rebalancing</li>
+              <li>Momentum and alternating allocation</li>
+              <li>Side-by-side strategy comparison</li>
+            </ul>
+          </div>
+        </div>
+        <p class="small" style="margin-top:1em"><span class="accent">Shared principle:</span> data stays close to the user — load a file, transform it in the browser, and visualize the result without a backend.</p>
+      </section>
+
+      <section>
+        <div class="eyebrow">07 / time tracker</div>
+        <h2>A stopwatch that remembers <span class="lime">everything</span></h2>
+        <p>Time Tracker is a zero-setup, single-page activity timer. Clicking a topic starts it; clicking another switches immediately.</p>
+        <div class="flow">
+          <span>Topic click</span><b>→</b><span>ActiveState</span><b>→</b><span>TimeEntry</span><b>→</b><span>Weekly stacked chart</span>
+        </div>
+        <div class="grid three">
+          <div class="card"><div class="number">5</div><div class="label">Monday–Friday chart columns</div></div>
+          <div class="card"><div class="number">3</div><div class="label">localStorage namespaces</div></div>
+          <div class="card"><div class="number">0</div><div class="label">backend calls required</div></div>
+        </div>
+        <p class="small" style="margin-top:1em">Topics are alphabetically sorted into 128 × 128 px square buttons. Running sessions survive reloads, and chart segments update while the timer is active.</p>
+      </section>
+
+      <section>
+        <div class="eyebrow">08 / the data model</div>
+        <h2>Small schema, <span class="accent">useful guarantees</span></h2>
+        <div class="grid two">
+          <div class="card">
+            <h3>Topic</h3>
+            <p><code>id</code> · stable identity<br><code>name</code> · trimmed, case-insensitively unique<br><code>createdAt</code> · ISO timestamp</p>
+          </div>
+          <div class="card">
+            <h3>TimeEntry</h3>
+            <p><code>topicId</code> + denormalized <code>topicName</code><br><code>startIso</code> · <code>endIso</code> · <code>minutes</code><br><code>date</code> · local start date for charting</p>
+          </div>
+          <div class="card">
+            <h3>ActiveState</h3>
+            <p>Either <code>null</code> or the currently running topic and its <code>startIso</code>. Persisted so a reload never silently loses an active session.</p>
+          </div>
+          <div class="card">
+            <h3>Export bundle</h3>
+            <p>One JSON file containing <code>version</code>, <code>exportedAt</code>, topics, entries, and active state. Import validates before replacing local data.</p>
+          </div>
+        </div>
+        <p class="small" style="margin-top:1em"><span class="lime">localStorage keys:</span> <code>timeTracker.topics</code> · <code>timeTracker.entries</code> · <code>timeTracker.active</code></p>
+      </section>
+
+      <section>
+        <div class="eyebrow">09 / platform strategy</div>
+        <h2>Static does not mean <span class="pink">limited</span></h2>
+        <div class="grid three">
+          <div class="card"><h3>Native browser APIs</h3><p>Canvas 2D, Web Audio, localStorage, FileReader, Blob downloads, Pointer Events, and service workers.</p></div>
+          <div class="card"><h3>Progressive enhancement</h3><p>Keyboard controls where available, touch controls on small screens, and responsive layouts instead of separate apps.</p></div>
+          <div class="card"><h3>Offline by design</h3><p>Several projects work directly from <code>file://</code>; PWA projects add manifests, caching, and installable app shells.</p></div>
+        </div>
+        <div class="grid two" style="margin-top:14px">
+          <div class="card"><h3>External assets</h3><p>Some projects load Bootstrap, Tailwind, fonts, or Chart.js from CDNs. Those visual assets may need a network connection.</p></div>
+          <div class="card"><h3>Self-contained logic</h3><p>Application behavior remains in plain HTML, CSS, and JavaScript with no required build tooling or package installation.</p></div>
+        </div>
+      </section>
+
+      <section>
+        <div class="eyebrow">10 / architecture in one view</div>
+        <h2>One recurring loop: <span class="accent">input → state → render</span></h2>
+        <div class="flow" style="margin-top:1.4em">
+          <span>Keyboard / touch / file</span><b>→</b><span>Browser event</span><b>→</b><span>In-memory state</span><b>→</b><span>localStorage / Web Audio</span><b>→</b><span>DOM / Canvas render</span>
+        </div>
+        <div class="grid three" style="margin-top:1.2em">
+          <div class="card"><h3>Games</h3><p>Game loop updates positions, collisions, score, and difficulty; Canvas reflects the current frame.</p></div>
+          <div class="card"><h3>Creative tools</h3><p>User gestures trigger audio or mutate patterns; controls and visual indicators mirror the state.</p></div>
+          <div class="card"><h3>Dashboards</h3><p>Files become normalized records; filters and aggregations produce charts and tables.</p></div>
+        </div>
+        <p class="quote" style="margin-top:1em">The common architecture is deliberately small enough to inspect, modify, and run without a toolchain.</p>
+      </section>
+
+      <section>
+        <div class="eyebrow">11 / what the READMEs emphasize</div>
+        <h2>Documentation as part of the <span class="lime">product</span></h2>
+        <div class="grid two">
+          <div>
+            <h3>Every project explains</h3>
+            <ul>
+              <li>How to run it with no build step</li>
+              <li>Controls and interaction details</li>
+              <li>Persistence and browser requirements</li>
+              <li>Implementation choices and project structure</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Users can understand</h3>
+            <ul>
+              <li>Where input files or sound samples belong</li>
+              <li>What is saved and how to reset it</li>
+              <li>What works offline and what needs a server</li>
+              <li>How to extend the next iteration</li>
+            </ul>
+          </div>
+        </div>
+        <p class="small" style="margin-top:1.2em">Examples include planned drum-machine refinements such as per-pad volume, swing, pattern slots, and quantization tuning — documentation that makes future work visible.</p>
+      </section>
+
+      <section>
+        <div class="eyebrow">12 / responsible reuse</div>
+        <h2>Small experiments, <span class="orange">clear boundaries</span></h2>
+        <div class="grid two">
+          <div class="card">
+            <h3>Audio and assets</h3>
+            <p>The drum machine intentionally does not ship sample files. Users are directed toward royalty-free or public-domain sources and must provide the 16 files themselves.</p>
+          </div>
+          <div class="card">
+            <h3>Browser privacy model</h3>
+            <p>Personal finance and time-tracking data is processed locally. Export and import are explicit user actions rather than hidden uploads.</p>
+          </div>
+          <div class="card">
+            <h3>Project-specific notes</h3>
+            <p>Individual READMEs may add their own licensing or originality statements. Check each project and its source files before redistribution.</p>
+          </div>
+          <div class="card">
+            <h3>Repository license</h3>
+            <p>Unless otherwise stated, original work is under the <strong>PolyForm Noncommercial License 1.0.0</strong>.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="hero">
+        <div class="eyebrow">closing / the invitation</div>
+        <h1>Open the browser.<br><span class="pink">Make a thing.</span></h1>
+        <p class="tagline">Games, instruments, simulations, dashboards, and tools — each one is a compact experiment in what the web platform can do on its own.</p>
+        <p class="meta">EXPLORE THE PROJECTS · READ THE DOCS · MODIFY THE SOURCE</p>
+        <p class="small" style="margin-top:2em">
+          <a href="../index.html">Repository dashboard</a> ·
+          <a href="../meteroite/index.html">Meteroite</a> ·
+          <a href="../game-of-life/index.html">Game of Life</a> ·
+          <a href="../synthesizer/index.html">ByteWave Synthesizer</a>
+        </p>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true,
+      controls: true,
+      progress: true,
+      slideNumber: "c/t",
+      transition: "fade",
+      backgroundTransition: "fade",
+      center: false,
+      width: 1280,
+      height: 720,
+      margin: 0.04
+    });
+  </script>
+</body>
+</html>
