@@ -1,3 +1,5 @@
+[<< Back](../README.md)
+
 # ByteWave Synthesizer
 
 ByteWave is a retro-styled, standalone HTML5 browser synthesizer built with HTML, CSS, and JavaScript. It uses the browser's Web Audio API to generate sound locally without a server, framework, build step, or external dependency.

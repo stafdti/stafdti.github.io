@@ -5,6 +5,7 @@ This repository is a collection of small, browser-based applications generated w
 ## Table of contents
 
 - [Block Cascade](#block-cascade)
+- [Meteroit](#meteroit)
 - [Drum Pad Machine](#drum-pad-machine)
 - [Finance Planner](#finance-planner)
 - [Parrondo Portfolio Lab](#parrondo-portfolio-lab)
@@ -13,6 +14,12 @@ This repository is a collection of small, browser-based applications generated w
 - [ByteWave Synthesizer](#bytewave-synthesizer)
 
 ## Projects
+
+### Meteroit
+
+A self-contained neon orbital arcade game built with plain HTML, CSS, and JavaScript. Pilot a scout ship, dodge pink debris, collect energy orbs, fire pulse shots, and survive increasingly active waves with browser-generated Web Audio effects.
+
+[Open Meteroit](meteroit/index.html) · [Read the Meteroit README](meteroit/README.md)
 
 ### Block Cascade
 

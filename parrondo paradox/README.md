@@ -1,3 +1,5 @@
+[<< Back](../README.md)
+
 # Parrondo Paradox
 
 A browser-based historical portfolio lab inspired by the **Parrondo paradox**: two individually unattractive paths can produce a different outcome when combined through a switching rule.

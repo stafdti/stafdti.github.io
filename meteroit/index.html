@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080b18">
+  <title>Meteroit — Neon Orbital Run</title>
+  <style>
+    :root {
+      --bg: #080b18;
+      --panel: rgba(15, 20, 42, .9);
+      --line: #26315c;
+      --text: #e9efff;
+      --muted: #8e9bc4;
+      --cyan: #55e6ff;
+      --pink: #ff5fb7;
+      --gold: #ffd166;
+      --green: #63f5a6;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+    }
+
+    body {
+      margin: 0;
+      padding: 18px;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 50% -10%, #202d65 0, transparent 42%),
+        linear-gradient(180deg, #0c1024 0%, var(--bg) 65%);
+      font: 14px/1.45 "Segoe UI", system-ui, sans-serif;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .shell {
+      width: min(100%, 1040px);
+      margin: auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--cyan);
+      font-size: clamp(1.7rem, 5vw, 3rem);
+      letter-spacing: .18em;
+      text-shadow: 0 0 20px rgba(85, 230, 255, .55);
+    }
+
+    .tagline {
+      margin: 5px 0 0;
+      color: var(--muted);
+      letter-spacing: .08em;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 250px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .screen-wrap,
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel);
+      box-shadow: 0 14px 45px rgba(0, 0, 0, .35), inset 0 0 22px rgba(85, 230, 255, .035);
+    }
+
+    .screen-wrap {
+      position: relative;
+      padding: 10px;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      max-height: 70vh;
+      aspect-ratio: 1.65;
+      border-radius: 7px;
+      background: #050712;
+      cursor: crosshair;
+      image-rendering: pixelated;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 10px;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      text-align: center;
+      border-radius: 7px;
+      background: rgba(4, 6, 16, .78);
+      backdrop-filter: blur(3px);
+    }
+
+    .overlay.hidden {
+      display: none;
+    }
+
+    .overlay-card {
+      max-width: 410px;
+    }
+
+    .overlay h2 {
+      margin: 0 0 8px;
+      color: var(--gold);
+      letter-spacing: .14em;
+    }
+
+    .overlay p {
+      margin: 0 0 18px;
+      color: var(--muted);
+    }
+
+    .panel {
+      padding: 16px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      min-width: 0;
+      overflow: hidden;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(0, 0, 0, .18);
+    }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: .72rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .stat strong {
+      display: block;
+      min-width: 0;
+      margin-top: 3px;
+      overflow: hidden;
+      color: var(--cyan);
+      font-size: 1.25rem;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .stat.best strong {
+      color: var(--pink);
+    }
+
+    .controls {
+      display: grid;
+      gap: 9px;
+    }
+
+    button {
+      border: 1px solid #3b4a82;
+      border-radius: 7px;
+      padding: 10px 12px;
+      color: var(--text);
+      background: #151d3c;
+      cursor: pointer;
+      transition: background .15s, border-color .15s, transform .08s;
+    }
+
+    button:hover {
+      background: #202b54;
+      border-color: var(--cyan);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    .primary {
+      color: #04111a;
+      background: var(--cyan);
+      border-color: var(--cyan);
+      font-weight: 700;
+    }
+
+    .primary:hover {
+      color: #04111a;
+      background: #8bf0ff;
+    }
+
+    .legend {
+      margin: 18px 0 0;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: .82rem;
+    }
+
+    kbd {
+      padding: 2px 5px;
+      border: 1px solid #455486;
+      border-radius: 4px;
+      color: var(--text);
+      background: #111833;
+    }
+
+    .touch {
+      display: none;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .touch button {
+      min-height: 44px;
+      font-size: 1.15rem;
+    }
+
+    .touch .wide {
+      grid-column: span 3;
+    }
+
+    footer {
+      margin-top: 18px;
+      color: #69769d;
+      font-size: .78rem;
+      text-align: center;
+    }
+
+    @media (max-width: 760px) {
+      body {
+        padding: 12px;
+      }
+
+      header {
+        align-items: start;
+        flex-direction: column;
+      }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .panel {
+        order: -1;
+      }
+
+      .stats {
+        margin-bottom: 10px;
+      }
+
+      .controls {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .controls .primary {
+        grid-column: span 3;
+      }
+
+      .legend {
+        display: none;
+      }
+
+      .touch {
+        display: grid;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <h1>METEROIT</h1>
+        <p class="tagline">NEON ORBITAL RUN // PILOT THE LAST SCOUT</p>
+      </div>
+      <div class="top-actions">
+        <button id="soundBtn" type="button" aria-pressed="true">SOUND: ON</button>
+        <button id="pauseBtn" type="button">PAUSE</button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <section class="screen-wrap" aria-label="Meteroit game screen">
+        <canvas id="game" width="900" height="545"></canvas>
+        <div class="overlay" id="overlay">
+          <div class="overlay-card">
+            <h2 id="overlayTitle">METEROIT</h2>
+            <p id="overlayText">Dodge the orbital debris, collect energy orbs, and survive as long as you can.</p>
+            <button class="primary" id="startBtn" type="button">LAUNCH MISSION</button>
+          </div>
+        </div>
+        <div class="touch" aria-label="Touch controls">
+          <button data-key="up" type="button">▲</button>
+          <button data-key="boost" type="button">BOOST</button>
+          <button data-key="down" type="button">▼</button>
+          <button data-key="left" type="button">◀</button>
+          <button data-key="brake" type="button">BRAKE</button>
+          <button data-key="right" type="button">▶</button>
+          <button class="wide" data-key="fire" type="button">PULSE CANNON</button>
+        </div>
+      </section>
+
+      <aside class="panel">
+        <div class="stats">
+          <div class="stat"><span>Score</span><strong id="score">000000</strong></div>
+          <div class="stat best"><span>Best</span><strong id="best">000000</strong></div>
+          <div class="stat"><span>Wave</span><strong id="wave">01</strong></div>
+          <div class="stat"><span>Energy</span><strong id="energy">100%</strong></div>
+        </div>
+        <div class="controls">
+          <button class="primary" id="restartBtn" type="button">NEW MISSION</button>
+          <button id="resetBestBtn" type="button">RESET BEST</button>
+        </div>
+        <div class="legend">
+          <strong>FLIGHT DECK</strong><br><br>
+          Move with <kbd>WASD</kbd> or <kbd>arrow keys</kbd>.<br>
+          Hold <kbd>Shift</kbd> to boost. Press <kbd>Space</kbd> to fire a pulse.<br><br>
+          Collect cyan orbs for energy. Pink debris ends the mission.
+        </div>
+      </aside>
+    </div>
+    <footer>Original canvas game • No external assets or libraries • Web Audio effects generated in your browser
+    </footer>
+  </main>
+
+  <script>
+    (() => {
+      "use strict";
+      const canvas = document.getElementById("game");
+      const ctx = canvas.getContext("2d");
+      const overlay = document.getElementById("overlay");
+      const overlayTitle = document.getElementById("overlayTitle");
+      const overlayText = document.getElementById("overlayText");
+      const startBtn = document.getElementById("startBtn");
+      const scoreEl = document.getElementById("score");
+      const bestEl = document.getElementById("best");
+      const waveEl = document.getElementById("wave");
+      const energyEl = document.getElementById("energy");
+      const soundBtn = document.getElementById("soundBtn");
+      const pauseBtn = document.getElementById("pauseBtn");
+      const keys = new Set();
+      const W = canvas.width, H = canvas.height;
+      let running = false, paused = false, last = 0, spawnClock = 0, orbClock = 0;
+      let score = 0, wave = 1, energy = 100, best = Number(localStorage.getItem("meteroit-best") || 0);
+      let debris = [], orbs = [], shots = [], particles = [], stars = [];
+      let soundOn = localStorage.getItem("meteroit-sound") !== "off";
+      let audioContext = null;
+
+      for (let i = 0; i < 100; i++) stars.push({ x: Math.random() * W, y: Math.random() * H, z: .2 + Math.random() * .8 });
+
+      const player = { x: 145, y: H / 2, r: 16, invulnerable: 0 };
+
+      function audio() {
+        if (!soundOn) return null;
+        try {
+          audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
+          if (audioContext.state === "suspended") audioContext.resume();
+          return audioContext;
+        } catch { return null; }
+      }
+      function tone(freq, duration, type = "sine", volume = .045, slide = 0) {
+        const ac = audio(); if (!ac) return;
+        const osc = ac.createOscillator(), gain = ac.createGain();
+        osc.type = type; osc.frequency.setValueAtTime(freq, ac.currentTime);
+        osc.frequency.linearRampToValueAtTime(Math.max(30, freq + slide), ac.currentTime + duration);
+        gain.gain.setValueAtTime(volume, ac.currentTime);
+        gain.gain.exponentialRampToValueAtTime(.0001, ac.currentTime + duration);
+        osc.connect(gain).connect(ac.destination); osc.start(); osc.stop(ac.currentTime + duration);
+      }
+      const sfx = {
+        shoot: () => tone(520, .07, "square", .025, -160),
+        collect: () => { tone(660, .1, "triangle", .04, 220); setTimeout(() => tone(880, .1, "triangle", .03), 55); },
+        hit: () => { tone(120, .28, "sawtooth", .08, -80); },
+        boost: () => tone(190, .06, "sawtooth", .018, 90),
+        start: () => { tone(260, .1, "triangle", .04, 140); setTimeout(() => tone(520, .18, "triangle", .035, 180), 90); }
+      };
+
+      function resetGame() {
+        score = 0; wave = 1; energy = 100; debris = []; orbs = []; shots = []; particles = [];
+        player.x = 145; player.y = H / 2; player.invulnerable = 1.5;
+        updateHud();
+      }
+      function startGame() {
+        resetGame(); running = true; paused = false; overlay.classList.add("hidden");
+        pauseBtn.textContent = "PAUSE"; sfx.start(); last = performance.now();
+      }
+      function endGame() {
+        running = false; paused = false; sfx.hit();
+        if (score > best) { best = score; localStorage.setItem("meteroit-best", best); }
+        updateHud(); overlayTitle.textContent = "MISSION LOST"; overlayText.textContent = `Final score: ${score.toLocaleString()}. The orbital field is still out there.`;
+        startBtn.textContent = "TRY AGAIN"; overlay.classList.remove("hidden");
+      }
+      function updateHud() {
+        scoreEl.textContent = String(Math.floor(score)).padStart(6, "0");
+        bestEl.textContent = String(Math.floor(best)).padStart(6, "0");
+        waveEl.textContent = String(wave).padStart(2, "0");
+        energyEl.textContent = `${Math.max(0, Math.ceil(energy))}%`;
+      }
+      function burst(x, y, color, count = 10) {
+        for (let i = 0; i < count; i++) {
+          const a = Math.random() * Math.PI * 2, speed = 30 + Math.random() * 130;
+          particles.push({ x, y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed, life: .45 + Math.random() * .5, color });
+        }
+      }
+      function spawnDebris() {
+        const r = 13 + Math.random() * 25;
+        debris.push({ x: W + r, y: 30 + Math.random() * (H - 60), r, vx: -(110 + wave * 12 + Math.random() * 80), spin: Math.random() * 6, angle: 0, points: 7 + Math.floor(Math.random() * 3) });
+      }
+      function spawnOrb() {
+        orbs.push({ x: W + 16, y: 35 + Math.random() * (H - 70), r: 8, vx: -(120 + wave * 10), phase: Math.random() * 6 });
+      }
+      function shoot() {
+        if (!running || paused || energy < 3) return;
+        energy -= 3; shots.push({ x: player.x + 20, y: player.y, vx: 510, life: 1.2 }); sfx.shoot(); updateHud();
+      }
+      function pressed(...names) { return names.some(name => keys.has(name)); }
+
+      function update(dt) {
+        const boost = pressed("Shift", "boost") && energy > 0;
+        const speed = boost ? 310 : 195;
+        if (pressed("ArrowUp", "w", "up")) player.y -= speed * dt;
+        if (pressed("ArrowDown", "s", "down")) player.y += speed * dt;
+        if (pressed("ArrowLeft", "a", "left")) player.x -= speed * dt;
+        if (pressed("ArrowRight", "d", "right")) player.x += speed * dt;
+        if (boost) { energy -= 22 * dt; if (Math.random() < dt * 7) sfx.boost(); }
+        else energy = Math.min(100, energy + 4 * dt);
+        player.x = Math.max(35, Math.min(W * .55, player.x)); player.y = Math.max(28, Math.min(H - 28, player.y));
+        player.invulnerable = Math.max(0, player.invulnerable - dt);
+        spawnClock += dt; orbClock += dt;
+        const gap = Math.max(.34, 1.1 - wave * .055);
+        if (spawnClock > gap) { spawnClock = 0; spawnDebris(); }
+        if (orbClock > 2.2) { orbClock = 0; spawnOrb(); }
+        debris.forEach(d => { d.x += d.vx * dt; d.angle += d.spin * dt; });
+        orbs.forEach(o => { o.x += o.vx * dt; o.phase += dt * 4; });
+        shots.forEach(s => { s.x += s.vx * dt; s.life -= dt; });
+        particles.forEach(p => { p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt; p.vy += 35 * dt; });
+        debris = debris.filter(d => d.x > -60);
+        orbs = orbs.filter(o => o.x > -30);
+        shots = shots.filter(s => s.life > 0 && s.x < W + 30);
+        particles = particles.filter(p => p.life > 0);
+        for (const d of debris) {
+          if (player.invulnerable <= 0 && Math.hypot(d.x - player.x, d.y - player.y) < d.r + player.r - 3) { burst(player.x, player.y, "#ff5fb7", 24); endGame(); return; }
+        }
+        for (let i = orbs.length - 1; i >= 0; i--) {
+          const o = orbs[i];
+          if (Math.hypot(o.x - player.x, o.y - player.y) < o.r + player.r) { energy = Math.min(100, energy + 22); score += 75; burst(o.x, o.y, "#55e6ff", 12); orbs.splice(i, 1); sfx.collect(); }
+        }
+        for (let i = debris.length - 1; i >= 0; i--) for (let j = shots.length - 1; j >= 0; j--) {
+          if (Math.hypot(debris[i].x - shots[j].x, debris[i].y - shots[j].y) < debris[i].r + 6) {
+            const d = debris[i]; score += Math.round(40 + d.r * 2); burst(d.x, d.y, "#ffd166", 15); debris.splice(i, 1); shots.splice(j, 1); break;
+          }
+        }
+        score += dt * (8 + wave * 2);
+        wave = 1 + Math.floor(score / 600);
+        updateHud();
+      }
+
+      function drawShip() {
+        ctx.save(); ctx.translate(player.x, player.y);
+        if (player.invulnerable > 0 && Math.floor(player.invulnerable * 12) % 2 === 0) ctx.globalAlpha = .35;
+        ctx.shadowBlur = 16; ctx.shadowColor = "#55e6ff"; ctx.strokeStyle = "#55e6ff"; ctx.fillStyle = "#0d2d48"; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(22, 0); ctx.lineTo(-15, -13); ctx.lineTo(-9, 0); ctx.lineTo(-15, 13); ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = "#ff5fb7"; ctx.beginPath(); ctx.arc(-8, 0, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.shadowBlur = 8; ctx.strokeStyle = "#ffd166"; ctx.beginPath(); ctx.moveTo(-14, -7); ctx.lineTo(-24, 0); ctx.lineTo(-14, 7); ctx.stroke(); ctx.restore();
+      }
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+        const gradient = ctx.createLinearGradient(0, 0, W, H); gradient.addColorStop(0, "#080d26"); gradient.addColorStop(1, "#060713"); ctx.fillStyle = gradient; ctx.fillRect(0, 0, W, H);
+        stars.forEach(star => { star.x -= (20 + wave * 3) * star.z / 2 * .016; if (star.x < 0) star.x = W; ctx.fillStyle = `rgba(165, 190, 255, ${.2 + star.z * .6})`; ctx.fillRect(star.x, star.y, star.z * 2, star.z * 2); });
+        ctx.strokeStyle = "rgba(85, 230, 255, .08)"; ctx.beginPath(); ctx.moveTo(0, H * .5); ctx.lineTo(W, H * .5); ctx.stroke();
+        orbs.forEach(o => { ctx.save(); ctx.translate(o.x, o.y + Math.sin(o.phase) * 5); ctx.shadowBlur = 18; ctx.shadowColor = "#55e6ff"; ctx.fillStyle = "#55e6ff"; ctx.beginPath(); ctx.arc(0, 0, o.r, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = "#e9ffff"; ctx.beginPath(); ctx.arc(-2, -2, 2, 0, Math.PI * 2); ctx.fill(); ctx.restore(); });
+        debris.forEach(d => { ctx.save(); ctx.translate(d.x, d.y); ctx.rotate(d.angle); ctx.shadowBlur = 13; ctx.shadowColor = "#ff5fb7"; ctx.strokeStyle = "#ff5fb7"; ctx.fillStyle = "#371536"; ctx.lineWidth = 3; ctx.beginPath(); for (let i = 0; i < d.points; i++) { const a = i / d.points * Math.PI * 2, rr = d.r * (.72 + Math.sin(i * 9.7) * .2); ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); } ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore(); });
+        shots.forEach(s => { ctx.strokeStyle = "#ffd166"; ctx.shadowBlur = 12; ctx.shadowColor = "#ffd166"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(s.x - 12, s.y); ctx.lineTo(s.x + 10, s.y); ctx.stroke(); });
+        particles.forEach(p => { ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 3, 3); }); ctx.globalAlpha = 1;
+        drawShip();
+      }
+      function frame(time) { const dt = Math.min(.035, (time - last) / 1000 || 0); last = time; if (running && !paused) update(dt); draw(); requestAnimationFrame(frame); }
+
+      function setKey(key, down) { if (down) keys.add(key); else keys.delete(key); }
+      window.addEventListener("keydown", e => {
+        const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+        if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " ", "Shift"].includes(e.key)) e.preventDefault();
+        if (e.key === " ") { if (!e.repeat) shoot(); return; }
+        if (e.key === "p" || e.key === "P") { if (running) togglePause(); return; }
+        setKey(key, true);
+      });
+      window.addEventListener("keyup", e => setKey(e.key.length === 1 ? e.key.toLowerCase() : e.key, false));
+      function togglePause() {
+        if (!running) return; paused = !paused; pauseBtn.textContent = paused ? "RESUME" : "PAUSE";
+        if (paused) { overlayTitle.textContent = "PAUSED"; overlayText.textContent = "The flight computer is holding position."; startBtn.textContent = "RESUME MISSION"; overlay.classList.remove("hidden"); }
+        else overlay.classList.add("hidden");
+      }
+      document.querySelectorAll("[data-key]").forEach(button => {
+        const key = button.dataset.key;
+        const down = e => { e.preventDefault(); if (key === "fire") shoot(); else setKey(key, true); };
+        const up = e => { e.preventDefault(); setKey(key, false); };
+        button.addEventListener("pointerdown", down); button.addEventListener("pointerup", up); button.addEventListener("pointerleave", up);
+      });
+      startBtn.addEventListener("click", () => paused ? togglePause() : startGame());
+      document.getElementById("restartBtn").addEventListener("click", startGame);
+      pauseBtn.addEventListener("click", togglePause);
+      soundBtn.addEventListener("click", () => { soundOn = !soundOn; localStorage.setItem("meteroit-sound", soundOn ? "on" : "off"); soundBtn.textContent = `SOUND: ${soundOn ? "ON" : "OFF"}`; soundBtn.setAttribute("aria-pressed", soundOn); });
+      document.getElementById("resetBestBtn").addEventListener("click", () => { best = 0; localStorage.removeItem("meteroit-best"); updateHud(); });
+      soundBtn.textContent = `SOUND: ${soundOn ? "ON" : "OFF"}`; soundBtn.setAttribute("aria-pressed", soundOn); updateHud(); requestAnimationFrame(frame);
+    })();
+  </script>
+</body>
+
+</html>
