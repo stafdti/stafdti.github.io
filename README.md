@@ -62,3 +62,9 @@ A browser-based activity timer for tracking time by topic. It includes a weekly 
 A retro-styled standalone Web Audio synthesizer with configurable oscillator, filter, envelope, polyphonic keyboard playback, and immediate local patch persistence.
 
 [Open the ByteWave Synthesizer](synthesizer/index.html) · [Read the Synthesizer README](synthesizer/README.md)
+
+## License
+
+Unless a project-specific README or file states otherwise, the original work in this repository is licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE).
+
+This license permits noncommercial use, modification, and redistribution, but does not permit commercial use. See the [full license terms](https://polyformproject.org/licenses/noncommercial/1.0.0) for the complete conditions.
