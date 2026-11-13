@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A responsive Conway's Game of Life simulator.">
+  <title>Conway's Game of Life</title>
+  <style>
+    :root {
+      --bg: #08111c;
+      --panel: #101d2b;
+      --panel-2: #142638;
+      --line: #29445b;
+      --text: #eef7ff;
+      --muted: #91a8bb;
+      --accent: #66e3b4;
+      --accent-strong: #29bf8a;
+      --alive: #9bffd7;
+      --dead: #0b1723;
+      --danger: #ff8b9e;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% 0%, #173650 0, transparent 38rem),
+        var(--bg);
+      font: 16px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, select, input { font: inherit; }
+    button, select {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--text);
+      background: var(--panel-2);
+      padding: .65rem .85rem;
+      cursor: pointer;
+    }
+    button:hover, select:hover { border-color: var(--accent); }
+    button:focus-visible, select:focus-visible, input:focus-visible {
+      outline: 3px solid rgba(102, 227, 180, .35);
+      outline-offset: 2px;
+    }
+    .app {
+      width: min(1120px, calc(100% - 2rem));
+      margin: 0 auto;
+      padding: 2.5rem 0 3rem;
+    }
+    header { margin-bottom: 1.5rem; }
+    .eyebrow {
+      margin: 0 0 .4rem;
+      color: var(--accent);
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+    h1 { margin: 0; font-size: clamp(2rem, 5vw, 4rem); line-height: 1.05; }
+    .intro { max-width: 650px; margin: .8rem 0 0; color: var(--muted); }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: 1.25rem;
+      align-items: start;
+    }
+    .board-card, .controls {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(16, 29, 43, .9);
+      box-shadow: 0 18px 50px rgba(0, 0, 0, .25);
+    }
+    .board-card { padding: clamp(.75rem, 2vw, 1.5rem); }
+    .board-wrap {
+      width: min(100%, 720px);
+      margin: 0 auto;
+      aspect-ratio: 1;
+      padding: 5px;
+      border-radius: 12px;
+      background: #20364a;
+    }
+    #board {
+      display: grid;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      border-radius: 8px;
+      background: var(--dead);
+      touch-action: none;
+    }
+    .cell {
+      min-width: 0;
+      min-height: 0;
+      border: 0;
+      border-right: 1px solid rgba(41, 68, 91, .45);
+      border-bottom: 1px solid rgba(41, 68, 91, .45);
+      padding: 0;
+      background: var(--dead);
+      cursor: crosshair;
+    }
+    .cell.alive {
+      background: var(--alive);
+      box-shadow: inset 0 0 9px rgba(255, 255, 255, .4), 0 0 9px rgba(102, 227, 180, .55);
+    }
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: .75rem 1.5rem;
+      margin-top: 1rem;
+      color: var(--muted);
+      text-align: center;
+    }
+    .stats strong { display: block; color: var(--text); font-size: 1.25rem; }
+    .controls { padding: 1rem; }
+    .controls h2 { margin: 0 0 1rem; font-size: 1.1rem; }
+    .button-row { display: grid; grid-template-columns: 1fr 1fr; gap: .55rem; margin-bottom: 1rem; }
+    .button-row .primary {
+      grid-column: 1 / -1;
+      border-color: var(--accent-strong);
+      color: #061c15;
+      background: var(--accent);
+      font-weight: 700;
+    }
+    .control-group {
+      display: grid;
+      gap: .45rem;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    label { color: var(--muted); font-size: .9rem; }
+    select { width: 100%; }
+    .range-line { display: flex; align-items: center; gap: .75rem; }
+    input[type="range"] { width: 100%; accent-color: var(--accent); }
+    .switch-line { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    .switch-line input { accent-color: var(--accent); transform: scale(1.2); }
+    .hint {
+      margin: 1rem 0 0;
+      color: var(--muted);
+      font-size: .85rem;
+    }
+    .status { min-height: 1.5em; margin: 1rem 0 0; color: var(--accent); font-size: .9rem; }
+    footer { margin-top: 1.5rem; color: var(--muted); font-size: .85rem; text-align: center; }
+    footer a { color: var(--accent); }
+    @media (max-width: 800px) {
+      .layout { grid-template-columns: 1fr; }
+      .controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+      .controls h2, .button-row, .status, .hint { grid-column: 1 / -1; }
+      .control-group { margin-top: 0; padding-top: 0; border-top: 0; }
+    }
+    @media (max-width: 500px) {
+      .app { width: min(100% - 1rem, 720px); padding-top: 1.5rem; }
+      .controls { display: block; }
+      .controls .control-group { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <p class="eyebrow">Cellular automata playground</p>
+      <h1>Conway's Game of Life</h1>
+      <p class="intro">Draw a population, press play, and watch simple rules create complex patterns. Every cell lives or dies based only on its eight neighbors.</p>
+    </header>
+
+    <div class="layout">
+      <section class="board-card" aria-labelledby="board-title">
+        <h2 id="board-title" class="visually-hidden">Game board</h2>
+        <div class="board-wrap">
+          <div id="board" role="grid" aria-label="Game of Life board"></div>
+        </div>
+        <div class="stats" aria-live="polite">
+          <div><strong id="generation">0</strong>Generation</div>
+          <div><strong id="population">0</strong>Population</div>
+          <div><strong id="density">0%</strong>Density</div>
+        </div>
+      </section>
+
+      <aside class="controls" aria-label="Simulation controls">
+        <h2>Controls</h2>
+        <div class="button-row">
+          <button class="primary" id="play" type="button">▶ Play</button>
+          <button id="step" type="button">Step</button>
+          <button id="clear" type="button">Clear</button>
+          <button id="randomize" type="button">Randomize</button>
+        </div>
+
+        <div class="control-group">
+          <label for="preset">Pattern preset</label>
+          <select id="preset">
+            <option value="blank">Blank board</option>
+            <option value="glider">Glider</option>
+            <option value="pulsar">Pulsar</option>
+            <option value="gosper">Gosper glider gun</option>
+          </select>
+          <button id="load-preset" type="button">Load preset</button>
+        </div>
+
+        <div class="control-group">
+          <label for="speed">Speed: <span id="speed-label">8</span> generations/sec</label>
+          <div class="range-line">
+            <span aria-hidden="true">🐢</span>
+            <input id="speed" type="range" min="1" max="20" value="8">
+            <span aria-hidden="true">🐇</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="switch-line" for="wrap">
+            <span>Wrap at board edges</span>
+            <input id="wrap" type="checkbox">
+          </label>
+        </div>
+
+        <p class="status" id="status" role="status">Draw cells or load a preset to begin.</p>
+        <p class="hint">Click or tap cells to draw. You can edit the board while paused.</p>
+      </aside>
+    </div>
+
+    <footer><a href="../index.html">← Back to app dashboard</a></footer>
+  </main>
+
+  <script>
+    (() => {
+      const SIZE = 40;
+      const board = document.querySelector("#board");
+      const generationEl = document.querySelector("#generation");
+      const populationEl = document.querySelector("#population");
+      const densityEl = document.querySelector("#density");
+      const playButton = document.querySelector("#play");
+      const speedInput = document.querySelector("#speed");
+      const speedLabel = document.querySelector("#speed-label");
+      const status = document.querySelector("#status");
+      const wrapInput = document.querySelector("#wrap");
+      const cells = [];
+      let state = Array.from({ length: SIZE }, () => Array(SIZE).fill(false));
+      let generation = 0;
+      let timer = null;
+      let isDrawing = false;
+      let pointerDrawing = false;
+      let suppressClick = false;
+
+      const patterns = {
+        glider: [[1, 0], [2, 1], [0, 2], [1, 2], [2, 2]],
+        pulsar: [
+          [2,0],[3,0],[4,0],[8,0],[9,0],[10,0],[0,2],[5,2],[7,2],[12,2],
+          [0,3],[5,3],[7,3],[12,3],[0,4],[5,4],[7,4],[12,4],
+          [2,5],[3,5],[4,5],[8,5],[9,5],[10,5],[2,7],[3,7],[4,7],[8,7],[9,7],[10,7],
+          [0,8],[5,8],[7,8],[12,8],[0,9],[5,9],[7,9],[12,9],[0,10],[5,10],[7,10],[12,10],
+          [2,12],[3,12],[4,12],[8,12],[9,12],[10,12]
+        ],
+        gosper: [
+          [24,0],[22,1],[24,1],[12,2],[13,2],[20,2],[21,2],[34,2],[35,2],
+          [11,3],[15,3],[20,3],[21,3],[34,3],[35,3],[0,4],[1,4],[11,4],[15,4],[20,4],[21,4],
+          [0,5],[1,5],[11,5],[13,5],[15,5],[16,5],[22,5],[24,5],[11,6],[15,6],[24,6],
+          [12,7],[13,7],[22,7],[23,7]
+        ]
+      };
+
+      function createBoard() {
+        board.style.gridTemplateColumns = `repeat(${SIZE}, 1fr)`;
+        for (let row = 0; row < SIZE; row += 1) {
+          for (let col = 0; col < SIZE; col += 1) {
+            const cell = document.createElement("button");
+            cell.className = "cell";
+            cell.type = "button";
+            cell.setAttribute("role", "gridcell");
+            cell.setAttribute("aria-label", `Row ${row + 1}, column ${col + 1}, dead`);
+
+            const paintCell = () => {
+              state[row][col] = isDrawing;
+              render();
+            };
+
+            cell.addEventListener("pointerdown", (event) => {
+              event.preventDefault();
+              pointerDrawing = true;
+              isDrawing = !state[row][col];
+              suppressClick = true;
+              paintCell();
+              status.textContent = "Painting cells. Release the pointer to stop.";
+            });
+
+            cell.addEventListener("pointerenter", () => {
+              if (pointerDrawing) paintCell();
+            });
+
+            cell.addEventListener("click", () => {
+              if (suppressClick) {
+                suppressClick = false;
+                return;
+              }
+              state[row][col] = !state[row][col];
+              render();
+              status.textContent = "Board edited. Press Play to run the simulation.";
+            });
+
+            board.appendChild(cell);
+            cells.push(cell);
+          }
+        }
+      }
+
+      function render() {
+        let population = 0;
+        state.forEach((row, r) => row.forEach((alive, c) => {
+          const cell = cells[r * SIZE + c];
+          cell.classList.toggle("alive", alive);
+          cell.setAttribute("aria-label", `Row ${r + 1}, column ${c + 1}, ${alive ? "alive" : "dead"}`);
+          if (alive) population += 1;
+        }));
+        generationEl.textContent = generation;
+        populationEl.textContent = population;
+        densityEl.textContent = `${Math.round((population / (SIZE * SIZE)) * 100)}%`;
+      }
+
+      function neighborCount(row, col) {
+        let count = 0;
+        for (let rowOffset = -1; rowOffset <= 1; rowOffset += 1) {
+          for (let colOffset = -1; colOffset <= 1; colOffset += 1) {
+            if (rowOffset === 0 && colOffset === 0) continue;
+            let nextRow = row + rowOffset;
+            let nextCol = col + colOffset;
+            if (wrapInput.checked) {
+              nextRow = (nextRow + SIZE) % SIZE;
+              nextCol = (nextCol + SIZE) % SIZE;
+            }
+            if (nextRow >= 0 && nextRow < SIZE && nextCol >= 0 && nextCol < SIZE && state[nextRow][nextCol]) count += 1;
+          }
+        }
+        return count;
+      }
+
+      function step() {
+        state = state.map((row, r) => row.map((alive, c) => {
+          const neighbors = neighborCount(r, c);
+          return neighbors === 3 || (alive && neighbors === 2);
+        }));
+        generation += 1;
+        render();
+        status.textContent = `Generation ${generation} complete.`;
+      }
+
+      function setRunning(running) {
+        if (running) {
+          if (timer) return;
+          timer = setInterval(step, 1000 / Number(speedInput.value));
+          playButton.textContent = "❚❚ Pause";
+          status.textContent = "Simulation running.";
+        } else {
+          clearInterval(timer);
+          timer = null;
+          playButton.textContent = "▶ Play";
+          status.textContent = "Simulation paused.";
+        }
+      }
+
+      function reset(nextState) {
+        setRunning(false);
+        state = nextState;
+        generation = 0;
+        render();
+      }
+
+      function loadPattern(name) {
+        if (name === "blank") {
+          reset(Array.from({ length: SIZE }, () => Array(SIZE).fill(false)));
+          status.textContent = "Blank board loaded.";
+          return;
+        }
+        const pattern = patterns[name];
+        const nextState = Array.from({ length: SIZE }, () => Array(SIZE).fill(false));
+        const maxRow = Math.max(...pattern.map(([x, y]) => y));
+        const maxCol = Math.max(...pattern.map(([x]) => x));
+        const offsetRow = Math.floor((SIZE - maxRow) / 2) - 1;
+        const offsetCol = Math.floor((SIZE - maxCol) / 2) - 1;
+        pattern.forEach(([x, y]) => {
+          const row = y + offsetRow;
+          const col = x + offsetCol;
+          if (row >= 0 && row < SIZE && col >= 0 && col < SIZE) nextState[row][col] = true;
+        });
+        reset(nextState);
+        status.textContent = `${name[0].toUpperCase()}${name.slice(1)} loaded.`;
+      }
+
+      window.addEventListener("pointerup", () => {
+        pointerDrawing = false;
+        isDrawing = false;
+        status.textContent = "Board edited. Press Play to run the simulation.";
+      });
+      window.addEventListener("pointercancel", () => {
+        pointerDrawing = false;
+        isDrawing = false;
+        suppressClick = false;
+      });
+
+      playButton.addEventListener("click", () => setRunning(!timer));
+      document.querySelector("#step").addEventListener("click", () => { setRunning(false); step(); });
+      document.querySelector("#clear").addEventListener("click", () => loadPattern("blank"));
+      document.querySelector("#randomize").addEventListener("click", () => {
+        reset(Array.from({ length: SIZE }, () => Array.from({ length: SIZE }, () => Math.random() < .28)));
+        status.textContent = "Random population created.";
+      });
+      document.querySelector("#load-preset").addEventListener("click", () => loadPattern(document.querySelector("#preset").value));
+      speedInput.addEventListener("input", () => {
+        speedLabel.textContent = speedInput.value;
+        if (timer) {
+          setRunning(false);
+          setRunning(true);
+        }
+      });
+      createBoard();
+      render();
+    })();
+  </script>
+</body>
+</html>

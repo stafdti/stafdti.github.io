@@ -5,6 +5,7 @@ This repository is a collection of small, browser-based applications generated w
 ## Table of contents
 
 - [Block Cascade](#block-cascade)
+- [Conway's Game of Life](#conways-game-of-life)
 - [Meteroit](#meteroit)
 - [Drum Pad Machine](#drum-pad-machine)
 - [Finance Planner](#finance-planner)
@@ -20,6 +21,12 @@ This repository is a collection of small, browser-based applications generated w
 A self-contained neon orbital arcade game built with plain HTML, CSS, and JavaScript. Pilot a scout ship, dodge pink debris, collect energy orbs, fire pulse shots, and survive increasingly active waves with browser-generated Web Audio effects.
 
 [Open Meteroite](meteroite/index.html) · [Read the Meteroite README](meteroite/README.md)
+
+### Conway's Game of Life
+
+A self-contained cellular automata simulator with an editable 40×40 board, play/pause and step controls, randomization, classic pattern presets, adjustable speed, optional edge wrapping, and live population statistics.
+
+[Open Conway's Game of Life](game-of-life/index.html) · [Read the Game of Life README](game-of-life/README.md)
 
 ### Block Cascade
 
