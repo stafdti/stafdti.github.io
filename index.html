@@ -84,6 +84,60 @@
             gap: 12px;
         }
 
+        .bom-section {
+            width: 100%;
+            max-width: 900px;
+            margin-top: 24px;
+            padding: 18px;
+            background: var(--group-bg);
+            border: 1px solid rgba(122, 122, 255, 0.2);
+            border-radius: 8px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        .bom-intro {
+            margin: -8px 0 16px 2px;
+            color: var(--muted-text);
+            font-size: 0.82rem;
+        }
+
+        .bom-table-wrapper {
+            overflow-x: auto;
+        }
+
+        .bom-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.78rem;
+        }
+
+        .bom-table th,
+        .bom-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid rgba(122, 122, 255, 0.18);
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .bom-table th {
+            color: var(--accent);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .bom-table td {
+            color: var(--muted-text);
+        }
+
+        .bom-table td:first-child {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .bom-table a {
+            color: var(--accent);
+        }
+
         .widget {
             width: 128px;
             max-width: 100%;
@@ -256,6 +310,73 @@
             </div>
         </section>
     </main>
+
+    <section class="bom-section" aria-labelledby="bom-title">
+        <h2 class="group-title" id="bom-title">📦 Bill of Materials (BOM)</h2>
+        <p class="bom-intro">External CDN dependencies referenced by the applications and this presentation.</p>
+        <div class="bom-table-wrapper">
+            <table class="bom-table">
+                <thead>
+                    <tr>
+                        <th>Dependency</th>
+                        <th>Version</th>
+                        <th>Used by</th>
+                        <th>Source</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Bootstrap</td>
+                        <td>5.3.3</td>
+                        <td>Drum Pad Machine, Finance Planner, Time Tracker</td>
+                        <td><a href="https://getbootstrap.com/" target="_blank" rel="noopener noreferrer">jsDelivr / Bootstrap</a></td>
+                    </tr>
+                    <tr>
+                        <td>Bootstrap Icons</td>
+                        <td>1.11.3</td>
+                        <td>Finance Planner</td>
+                        <td><a href="https://icons.getbootstrap.com/" target="_blank" rel="noopener noreferrer">jsDelivr / Bootstrap Icons</a></td>
+                    </tr>
+                    <tr>
+                        <td>Chart.js</td>
+                        <td>4.4.4</td>
+                        <td>Finance Planner</td>
+                        <td><a href="https://www.chartjs.org/" target="_blank" rel="noopener noreferrer">jsDelivr / Chart.js</a></td>
+                    </tr>
+                    <tr>
+                        <td>Font Awesome</td>
+                        <td>6.4.0</td>
+                        <td>RetroOS 1984</td>
+                        <td><a href="https://fontawesome.com/" target="_blank" rel="noopener noreferrer">cdnjs</a></td>
+                    </tr>
+                    <tr>
+                        <td>Google Fonts</td>
+                        <td>Unversioned</td>
+                        <td>Block Cascade, RetroOS 1984</td>
+                        <td><a href="https://fonts.google.com/" target="_blank" rel="noopener noreferrer">Google Fonts</a></td>
+                    </tr>
+                    <tr>
+                        <td>PapaParse</td>
+                        <td>5.4.1</td>
+                        <td>Finance Planner</td>
+                        <td><a href="https://www.papaparse.com/" target="_blank" rel="noopener noreferrer">jsDelivr / PapaParse</a></td>
+                    </tr>
+                    <tr>
+                        <td>Reveal.js</td>
+                        <td>5.1.0</td>
+                        <td>Project Presentation</td>
+                        <td><a href="https://revealjs.com/" target="_blank" rel="noopener noreferrer">jsDelivr / Reveal.js</a></td>
+                    </tr>
+                    <tr>
+                        <td>Tailwind CSS</td>
+                        <td>Play CDN</td>
+                        <td>Block Cascade, RetroOS 1984</td>
+                        <td><a href="https://tailwindcss.com/" target="_blank" rel="noopener noreferrer">Tailwind CDN</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
 
     <footer>stafdti.github.io</footer>
     <p class="disclaimer">🤖 These applications were built with the help of AI coding assistants.</p>
