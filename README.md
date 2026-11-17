@@ -6,6 +6,7 @@ This repository is a collection of small, browser-based applications generated w
 
 - [Block Cascade](#block-cascade)
 - [Conway's Game of Life](#conways-game-of-life)
+- [Police Chase 2000](#police-chase-2000)
 - [Meteroit](#meteroit)
 - [Drum Pad Machine](#drum-pad-machine)
 - [Finance Planner](#finance-planner)
@@ -33,6 +34,12 @@ A self-contained cellular automata simulator with an editable 40×40 board, play
 A retro-styled arcade puzzle where you arrange falling polyomino pieces to clear rows. Includes keyboard and touch controls, synthesized sound effects, selectable themes, and a saved best score.
 
 [Read the Block Cascade README](block-cascade/README.md)
+
+### Police Chase 2000
+
+A self-contained top-down pursuit arcade game built with plain HTML, CSS, and JavaScript. Drive the blue getaway car through an abstract city grid, collect escape markers, use boosts, and evade increasingly active police patrols. Its procedural visuals are original placeholders documented for future art replacement.
+
+[Open Police Chase 2000](police-chase-2000/index.html) · [Read the Police Chase 2000 README](police-chase-2000/README.md)
 
 ### Drum Pad Machine
 
