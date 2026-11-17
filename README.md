@@ -13,6 +13,7 @@ This repository is a collection of small, browser-based applications generated w
 - [Parrondo Portfolio Lab](#parrondo-portfolio-lab)
 - [RetroOS 1984](#retroos-1984)
 - [Time Tracker](#time-tracker)
+- [FDE Self-Assessment](#fde-self-assessment)
 - [ByteWave Synthesizer](#bytewave-synthesizer)
 
 ## Projects
@@ -70,6 +71,12 @@ A browser-based retro workstation simulation with draggable application windows,
 A browser-based activity timer for tracking time by topic. It includes a weekly chart, data import/export, local persistence, and installable PWA support.
 
 [Read the Time Tracker README](time-tracker/README.md)
+
+### FDE Self-Assessment
+
+A standalone self-assessment tool for Forward Deployed Engineer readiness. It covers 32 capability questions across customer discovery, technical delivery, AI and data fluency, product thinking, communication, execution, trust and safety, and commercial acumen. It includes a live radar chart, category scoring, prioritized development recommendations, local persistence, and JSON import/export.
+
+[Open the FDE Self-Assessment](fde-self-assessment/src/index.html) · [Read the FDE Self-Assessment README](fde-self-assessment/README.md)
 
 ### ByteWave Synthesizer
 
